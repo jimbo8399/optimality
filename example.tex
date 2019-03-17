@@ -42,7 +42,7 @@ The main problem which this project aims to resolve is formulating an optimal wa
 \textbf{RQ: How can waiting time and model accuracy at the edge gateway be maximised while minimising the communication to the gateway and computational complexity at the sensing node level?}
 
 \section{Background}
-
+\subsection*{Knowledge sharing in IoT environments}
 Given a sample path in an IoT system consisting of a sensing node, a local edge gateway and a central data node as en endpoint, the multihop transmission can increase energy consumption when the gateway is busy and the data has to be passed to the central node \cite{shi2016}. When data processing is not performed at the edge level, if $N$ multivariate datapoints are sensed and sent through the network, that results in $N$ number of transmissions. However, if the data is processed at the edge, the result is a linear model representation of the data ($y = \alpha\cdot X + \beta$), where only the parameters $\alpha, \beta$ are being passed through the network reducing the energy consumption \cite{tanluizhang2011}.\\
 Due to Wireless Sensor Networks (WSNs) used in remote locations (e.g. rainforest sensors  \cite{rainforests2009}, surface and mine monitoring \cite{Akkas2018}, water pollution detectors\cite{waterwsn2017}, etc.) are usually being powered by a battery, therefore, the energy consumption of the sensing devices should be minimised as much as possible to reduce the amount of human interaction required to replace the exhausted batteries. Such interaction with the device may distort the environment and introduce incorrect data and if the sensors are placed at locations with difficult access that could increase the financial cost or even cause danger to the person responsible for the replacement.\\
 Other similar sensor systems rely on renewable energy, most widely used is solar energy, which could be slower to harvest in environments such as rainforests \cite{rainforests2009}, therefore, having a power efficient device is a must in order to have a well-functional system.\\
@@ -51,6 +51,7 @@ A way of minimising the energy cost of an edge device even more is by reducing t
 The approach is as follows, if a data model is generated at the edge node and sent to the edge gateway, on the next iteration, if the node does not detect a significant change between the initially modelled data and the currently sensed dataset, no communication is made between the edge node and the edge gateway.\\
 Deciding when to send a new updated model to the edge gateway from the node before the accuracy has degraded beyond a reasonable threshold can be looked from a slightly different angle. 
 
+\subsection*{Optimal knowledge communication}
 According to Thomas Ferguson from UCLA \cite{UCLAbook}, the theory of optimal stopping is attempting to solve exactly the problem stated above - choosing a time to take a given action (in this case to stop and update the model at the edge gateway) based on sequentially observed random variables, hence, a known distribution, in order to maximise an expected reward or minimise an expected cost. \\
 And based on that formulation, there are several variations of the problem whose solutions are used as a basis to problems in Computing Science. Two relevant examples are the so called \emph{House-Selling} problem and the \emph{Quickest Change Detection} problem. 
 
@@ -91,29 +92,31 @@ The postponing policy is based on the CuSum algorithm \cite{page1954}, which det
     $S_n = \Delta e_n + \Sigma_{t=0}^{n-1} \Delta e_t$
 \end{center}
 
-A threshold $\Theta$ is placed to determine the acceptable error sum and is used to determine if the algorithm should be penalised or rewarded with a reward value $V_t$.
-\begin{center}
-    $V_t = \Bigg\{ $ \begin{tabular}{c}
+A threshold $\Theta$ is placed to determine the acceptable error sum and is used to determine if the algorithm should be penalised or rewarded with a penalty/reward value $V_t$.
+\begin{equation}\label{reward}
+    V_t = \Bigg\{ \begin{tabular}{c}
                   $t\ \text{if}\ S_t \leq \Theta$ \\
                   $-B\ \text{if}\ S_t > \Theta$
                   \end{tabular}
-\end{center}
+\end{equation}
 
 Taking into consideration that the expected reward $E[V_t]$ must be a positive value, we can calculate the probability interval that the cumulative sum is less than or equal to the set threshold.
 \begin{center}
     $P(S_t \leq \Theta) > \frac{B}{t+B}$
 \end{center}
 
-% \emph{Proof:} 
-% \begin{center}
-%     $E[V_t] = t * P(S_t \leq \Theta) + (-B * P(S_t > \Theta))$
+\emph{Proof:} 
+
+From the reward function in\ref{reward}
+\begin{flushleft}
+    $E[V_t] = t * P(S_t \leq \Theta) + (-B * P(S_t > \Theta))$\\
     
-%     $E[V_t] = t * P(S_t \leq \Theta) - B * (1 - P(S_t \leq \Theta))$
+    $E[V_t] = t * P(S_t \leq \Theta) - B * (1 - P(S_t \leq \Theta))$\\
     
-%     $E[V_t] = (t + B) * P(S_t \leq \Theta) - B > 0$
+    $E[V_t] = (t + B) * P(S_t \leq \Theta) - B > 0$\\
     
-%     $=>$  $P(S_t \leq \Theta) > \frac{B}{t+B}$
-% \end{center}
+    $=>$  $P(S_t \leq \Theta) > \frac{B}{t+B}$\\
+\end{flushleft}
 
 \subsection{Compared Policies}
 
@@ -141,16 +144,16 @@ The policy aims to present a naive algorithm for reducing communication but pres
 The algorithm implemented here relies on the direct form of the CuSum algorithm explained by Granjon \cite{cusum_pierre}.
 
 For the execution of the algorithm, two assumptions of the distributions are made representing the two hypothesis and the algorithm aims to decide which hypothesis represents the current sample of data. 
-Firstly, the $\mathcal{H}_0$ no change hypothesis which refers to the "good distribution" is assumed to be the distribution of the absolute error difference when the edge gateway model is communicated on every iteration. On the contrary, the "bad distribution" represented by the changed distribution $\mathcal{H}_1$ is assumed to be the distribution of the absolute error difference when the model is communicated only on the first iteration and then never again. 
+Firstly, the $\mathcal{H}_0$ no change hypothesis which refers to the "good distribution" is assumed to be the distribution of the absolute error difference when the edge gateway model is communicated on every iteration. On the contrary, the "bad distribution" represented by the changed distribution $\mathcal{H}_1$ is assumed to be the distribution of the absolute error difference when the model is communicated only on the first iteration and then never again.
 
 Let the absolute error differences $\Delta e_0, \Delta e_1, \dotsc ,\Delta e_n $ be continuous independent random variables. In this case a gamma distribution is a good choice to represent the data, relying on the two flexible parameters for scale and shape of the probability density function of the distribution.
 
 \section{Evaluation}
 
 \subsection*{Data sets}
-Two datasets will be used in order to apply the proposed approach and perform the previously discussed experiments.
-\\$\bullet$ \textbf{GNFUV Unmanned Surface Vehicles Sensor Data Data Set} \cite{harth2018} - a dataset produced by 4 Unmanned Surface Vehicle sensing devices which observed and recorded timestamped multivariate contextual environmental data using temperature and humidity sensors. The collected data will be associated with the Linear Regression task performed in the experiments for each policy.
-\\$\bullet$ \textbf{Gas sensors for home activity monitoring Data Set } \cite{HUERTA2016169} - a timestamped dataset containing readings from a temperature, a humidity and 8 MOX gas sensors of a contained environment where either or not a stimuli is presented. The collected data will be used in the SVR (with RBF kernel) task in order to assess the 5 policies.
+Two time-series datasets will be used in order to apply the proposed approach and perform the previously discussed experiments.
+\\$\bullet$ \textbf{GNFUV Unmanned Surface Vehicles Sensor Data Data Set} \cite{harth2018} - a dataset produced by 4 Unmanned Surface Vehicle sensing devices which observed and recorded timestamped multivariate contextual environmental data using temperature and humidity sensors. The collected data will be associated with the Linear Regression task performed in the experiments for each policy. The generated linear regression models are aimed at predicting the environmental humidity based on the sensed temperature.
+\\$\bullet$ \textbf{Gas sensors for home activity monitoring Data Set } \cite{HUERTA2016169} - a timestamped dataset containing readings from a temperature, a humidity and 8 metal-oxide(MOX) gas sensors of a contained environment where either or not a stimuli is presented. The collected data will be used in the Support Vector Regression(SVR) (with an RBF kernel) task in order to assess the 5 policies. The generated support vector models are aimed at predicting the level of MOX gas based on the vector of detected humidity and temperature
 \subsection{Experimentation}
 
 \section{Conclusions}
