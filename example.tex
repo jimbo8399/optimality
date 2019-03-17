@@ -141,7 +141,9 @@ The policy aims to present a naive algorithm for reducing communication but pres
 The algorithm implemented here relies on the direct form of the CuSum algorithm explained by Granjon \cite{cusum_pierre}.
 
 For the execution of the algorithm, two assumptions of the distributions are made representing the two hypothesis and the algorithm aims to decide which hypothesis represents the current sample of data. 
-Firstly, the $\mathcal{H}_0$ no change hypothesis which refers to the "good distribution" is assumed to be the distribution of the absolute error difference when the edge gateway model is communicated on every iteration. On the other hand, the "bad distribution" represented by the changed distribution $\mathcal{H}_1$ is assumed to be the distribution of the absolute error difference when the model is communicated only on the first iteration and then never again. 
+Firstly, the $\mathcal{H}_0$ no change hypothesis which refers to the "good distribution" is assumed to be the distribution of the absolute error difference when the edge gateway model is communicated on every iteration. On the contrary, the "bad distribution" represented by the changed distribution $\mathcal{H}_1$ is assumed to be the distribution of the absolute error difference when the model is communicated only on the first iteration and then never again. 
+
+Let the absolute error differences $\Delta e_0, \Delta e_1, \dotsc ,\Delta e_n $ be continuous independent random variables. In this case a gamma distribution is a good choice to represent the data, relying on the two flexible parameters for scale and shape of the probability density function of the distribution.
 
 \section{Evaluation}
 
