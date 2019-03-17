@@ -13,7 +13,7 @@
 \maketitle
 
 \begin{abstract}
-...
+This paper explores the idea of deciding when to update statistical learning models in Intelligent Edge Devices given the underlying change in the data distribution. The model update schedule takes into consideration the optimal time for minimizing the network overhead while minimizing the prediction accuracy of the models. The paper presents a comparison between a proposed model updating approach and other 4 different update delaying policies, which evaluates the performances and discusses the strengths and weaknesses of the proposed policy.
 \end{abstract}
 
 \section{Introduction}
@@ -86,11 +86,10 @@ Given that the latest model of the sensor node satisfies a certain criteria, a d
 
 \subsection*{Optimal Postponing Policy}
 The postponing policy is based on the CuSum algorithm \cite{page1954}, which detects a change in the distribution using the cumulative sum of the absolute error difference between the two MSEs:
-\begin{center}
-    $\Delta e_k = | e'_k - e_k |$
-    
-    $S_n = \Delta e_n + \Sigma_{t=0}^{n-1} \Delta e_t$
-\end{center}
+\begin{gather*}
+    \Delta e_k = | e'_k - e_k |\\
+    S_n = \Delta e_n + \Sigma_{t=0}^{n-1} \Delta e_t
+\end{gather*}
 
 A threshold $\Theta$ is placed to determine the acceptable error sum and is used to determine if the algorithm should be penalised or rewarded with a penalty/reward value $V_t$.
 \begin{equation}\label{reward}
@@ -107,21 +106,24 @@ Taking into consideration that the expected reward $E[V_t]$ must be a positive v
 
 \emph{Proof:} 
 
-From the reward function in\ref{reward}
-\begin{flushleft}
-    $E[V_t] = t * P(S_t \leq \Theta) + (-B * P(S_t > \Theta))$\\
-    
-    $E[V_t] = t * P(S_t \leq \Theta) - B * (1 - P(S_t \leq \Theta))$\\
-    
-    $E[V_t] = (t + B) * P(S_t \leq \Theta) - B > 0$\\
-    
-    $=>$  $P(S_t \leq \Theta) > \frac{B}{t+B}$\\
-\end{flushleft}
+From the reward function in (\ref{reward}) we can derive the expected reward function $E[V_t]$. 
+\begin{equation}
+\begin{split}
+    E[V_t] & = t * P(S_t \leq \Theta) + (-B * P(S_t > \Theta))\\
+    & = t * P(S_t \leq \Theta) - B * (1 - P(S_t \leq \Theta))
+\end{split}
+\end{equation}
+
+Given that we aim is to not pass the specified threshold $\Theta$, then the result of the reward function has to always be a positive number $E[V_t] > 0$. This leads to deriving the probability of the absolute error sum not exceeding the threshold.
+\begin{multline*}
+    (t + B) * P(S_t \leq \Theta) - B > 0\\
+    =>  P(S_t \leq \Theta) > \frac{B}{t+B}
+\end{multline*}
 
 \subsection{Compared Policies}
 
-In order to evaluate the performance of the presented algorithm 4 other policies are implemented, which rely either on certain statistics of the data or on pure randomness:
-Median policy, Random policy, Accuracy Policy , CuSum policy \cite{cusum_pierre}.
+In order to evaluate the performance of the presented algorithm 4 other policies are implemented, which rely either on certain statistics of the data or on pure randomness:\\
+Median policy, Random policy, Accuracy policy, CuSum policy \cite{cusum_pierre}.
 
 \subsubsection{Median Policy}
 
