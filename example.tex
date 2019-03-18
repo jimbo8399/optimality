@@ -13,7 +13,7 @@
 \maketitle
 
 \begin{abstract}
-This paper explores the idea of deciding when to update statistical learning models in Intelligent Edge Devices given the underlying change in the data distribution. The model update schedule takes into consideration the optimal time for minimizing the network overhead while minimizing the prediction accuracy of the models. The paper presents a comparison between a proposed model updating approach and other 4 different update delaying policies, which evaluates the performances and discusses the strengths and weaknesses of the proposed policy.
+This paper explores the idea of deciding when to update statistical learning models in Intelligent Edge Devices given the underlying change in the context distribution. The model update schedule takes into consideration the optimal time for minimizing the network overhead while preserving the prediction accuracy of the models. The paper presents a comparison between a proposed model updating approach and other 4 different update delaying policies, which evaluates the performances and discusses the strengths and weaknesses of the proposed policy.
 \end{abstract}
 
 \section{Introduction}
@@ -114,7 +114,7 @@ From the reward function in (\ref{reward}) we can derive the expected reward fun
 \end{split}
 \end{equation}
 
-Given that we aim is to not pass the specified threshold $\Theta$, then the result of the reward function has to always be a positive number $E[V_t] > 0$. This leads to deriving the probability of the absolute error sum not exceeding the threshold.
+Given that we aim is to not pass the specified threshold $\Theta$, then the result of the reward function has to always be a positive value $E[V_t] > 0$. From this we can derive the probability of the absolute error sum not exceeding the threshold.
 \begin{multline*}
     (t + B) * P(S_t \leq \Theta) - B > 0\\
     =>  P(S_t \leq \Theta) > \frac{B}{t+B}
@@ -148,14 +148,21 @@ The algorithm implemented here relies on the direct form of the CuSum algorithm 
 For the execution of the algorithm, two assumptions of the distributions are made representing the two hypothesis and the algorithm aims to decide which hypothesis represents the current sample of data. 
 Firstly, the $\mathcal{H}_0$ no change hypothesis which refers to the "good distribution" is assumed to be the distribution of the absolute error difference when the edge gateway model is communicated on every iteration. On the contrary, the "bad distribution" represented by the changed distribution $\mathcal{H}_1$ is assumed to be the distribution of the absolute error difference when the model is communicated only on the first iteration and then never again.
 
-Let the absolute error differences $\Delta e_0, \Delta e_1, \dotsc ,\Delta e_n $ be continuous independent random variables. In this case a gamma distribution is a good choice to represent the data, relying on the two flexible parameters for scale and shape of the probability density function of the distribution.
+Let the absolute error differences $\Delta e_0, \Delta e_1, \dotsc ,\Delta e_n $ be continuous independent random variables. In this case a gamma distribution is a good choice to represent the data  [Fig.\ref{fig:goodvsbad}], relying on the two flexible parameters for scale and shape of the probability density function of the distribution.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.45]{imgs/goodVSbad.PNG}
+    \caption{Gamma distribution approximation on GNFUV data using Linear Regression}
+    \label{fig:goodvsbad}
+\end{figure}
 
 \section{Evaluation}
 
 \subsection*{Data sets}
 Two time-series datasets will be used in order to apply the proposed approach and perform the previously discussed experiments.
 \\$\bullet$ \textbf{GNFUV Unmanned Surface Vehicles Sensor Data Data Set} \cite{harth2018} - a dataset produced by 4 Unmanned Surface Vehicle sensing devices which observed and recorded timestamped multivariate contextual environmental data using temperature and humidity sensors. The collected data will be associated with the Linear Regression task performed in the experiments for each policy. The generated linear regression models are aimed at predicting the environmental humidity based on the sensed temperature.
-\\$\bullet$ \textbf{Gas sensors for home activity monitoring Data Set } \cite{HUERTA2016169} - a timestamped dataset containing readings from a temperature, a humidity and 8 metal-oxide(MOX) gas sensors of a contained environment where either or not a stimuli is presented. The collected data will be used in the Support Vector Regression(SVR) (with an RBF kernel) task in order to assess the 5 policies. The generated support vector models are aimed at predicting the level of MOX gas based on the vector of detected humidity and temperature
+\\$\bullet$ \textbf{Gas sensors for home activity monitoring Data Set } \cite{HUERTA2016169} - a timestamped dataset containing readings from a temperature, a humidity and 8 metal-oxide(MOX) gas sensors of a contained environment where either or not a stimuli is presented. The collected data will be used in the Support Vector Regression(SVR) (with an RBF kernel) task in order to assess the 5 policies. The generated support vector models are aimed at predicting the level of MOX gas based on the vector of detected humidity and temperature.
 \subsection{Experimentation}
 
 \section{Conclusions}
