@@ -86,10 +86,11 @@ Given that the latest model of the sensor node satisfies a certain criteria, a d
 
 \subsection*{Optimal Postponing Policy}
 The postponing policy is based on the CuSum algorithm \cite{page1954}, which detects a change in the distribution using the cumulative sum of the absolute error difference between the two MSEs:
-\begin{gather*}
-    \Delta e_k = | e'_k - e_k |\\
-    S_n = \Delta e_n + \Sigma_{t=0}^{n-1} \Delta e_t
-\end{gather*}
+\begin{align}
+    Z_k &= \Delta e_k = | e'_k - e_k |\\
+    S_n &= \Delta e_n + \Sigma_{k=0}^{n-1} \Delta e_k\\
+    S_n &= Z_k + S_{n-1}\label{eq:1}
+\end{align}
 
 A threshold $\Theta$ is placed to determine the acceptable error sum and is used to determine if the algorithm should be penalised or rewarded with a penalty/reward value $V_t$.
 \begin{equation}\label{reward}
@@ -104,8 +105,7 @@ Taking into consideration that the expected reward $E[V_t]$ must be a positive v
     $P(S_t \leq \Theta) > \frac{B}{t+B}$
 \end{center}
 
-\emph{Proof:} 
-
+\emph{\textbf{Proof:}} \\
 From the reward function in (\ref{reward}) we can derive the expected reward function $E[V_t]$. 
 \begin{equation}
 \begin{split}
@@ -114,11 +114,25 @@ From the reward function in (\ref{reward}) we can derive the expected reward fun
 \end{split}
 \end{equation}
 
-Given that we aim is to not pass the specified threshold $\Theta$, then the result of the reward function has to always be a positive value $E[V_t] > 0$. From this we can derive the probability of the absolute error sum not exceeding the threshold.
+Given that we aim is to not exceed the specified threshold $\Theta$, then the result of the reward function has to always be a positive value $E[V_t] > 0$. From this we can derive the probability of the absolute error sum not exceeding the threshold.
 \begin{multline*}
-    (t + B) * P(S_t \leq \Theta) - B > 0\\
+    E[V_t] = (t + B) * P(S_t \leq \Theta) - B > 0\\
     =>  P(S_t \leq \Theta) > \frac{B}{t+B}
 \end{multline*}
+
+\begin{align*}
+    E[V_{t+1}|S_t\leq\Theta] = (t+1+B)*P(S_{t+1}\leq\Theta) - B
+\end{align*}
+However, it is known from Eq.(\ref{eq:1}) that:
+\begin{equation*}
+    S_{t+1} = Z_{t+1} + S_t
+\end{equation*}
+
+Therefore, 
+\begin{equation*}
+    P(S_t + Z \leq \Theta) = P(Z\leq\Theta-S_t)
+\end{equation*}
+
 
 \subsection{Compared Policies}
 
@@ -148,7 +162,7 @@ The algorithm implemented here relies on the direct form of the CuSum algorithm 
 For the execution of the algorithm, two assumptions of the distributions are made representing the two hypothesis and the algorithm aims to decide which hypothesis represents the current sample of data. 
 Firstly, the $\mathcal{H}_0$ no change hypothesis which refers to the "good distribution" is assumed to be the distribution of the absolute error difference when the edge gateway model is communicated on every iteration. On the contrary, the "bad distribution" represented by the changed distribution $\mathcal{H}_1$ is assumed to be the distribution of the absolute error difference when the model is communicated only on the first iteration and then never again.
 
-Let the absolute error differences $\Delta e_0, \Delta e_1, \dotsc ,\Delta e_n $ be continuous independent random variables. In this case a gamma distribution is a good choice to represent the data  [Fig.\ref{fig:goodvsbad}], relying on the two flexible parameters for scale and shape of the probability density function of the distribution.
+Given the assumption that the absolute error differences $Z_0, Z_1, \dotsc , Z_n $ are continuous independent random variables. In this case a gamma distribution is a good choice to represent the data  [Fig.\ref{fig:goodvsbad}], relying on the two flexible parameters for scale and shape of the probability density function of the distribution.
 
 \begin{figure}[h]
     \centering
@@ -164,6 +178,8 @@ Two time-series datasets will be used in order to apply the proposed approach an
 \\$\bullet$ \textbf{GNFUV Unmanned Surface Vehicles Sensor Data Data Set} \cite{harth2018} - a dataset produced by 4 Unmanned Surface Vehicle sensing devices which observed and recorded timestamped multivariate contextual environmental data using temperature and humidity sensors. The collected data will be associated with the Linear Regression task performed in the experiments for each policy. The generated linear regression models are aimed at predicting the environmental humidity based on the sensed temperature.
 \\$\bullet$ \textbf{Gas sensors for home activity monitoring Data Set } \cite{HUERTA2016169} - a timestamped dataset containing readings from a temperature, a humidity and 8 metal-oxide(MOX) gas sensors of a contained environment where either or not a stimuli is presented. The collected data will be used in the Support Vector Regression(SVR) (with an RBF kernel) task in order to assess the 5 policies. The generated support vector models are aimed at predicting the level of MOX gas based on the vector of detected humidity and temperature.
 \subsection{Experimentation}
+
+\subsection{Evaluation summary}
 
 \section{Conclusions}
 
