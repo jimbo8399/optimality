@@ -190,12 +190,42 @@ Two time-series datasets will be used in order to apply the proposed approach an
 \subsection{Experimentation}
 % experiment set up for Lin Reg
 % place plot of all policies abs error rate for lin reg
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.3]{imgs/lin_reg_pi3_w25.png}
+    \caption{Absolute error difference for SUV sensor system, s=pi3, w=25, using Linear Regression}
+    \label{fig:err_lin_reg_pi3}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.3]{imgs/lin_reg_pi4_w25.png}
+    \caption{Absolute error difference for SUV sensor system, s=pi4, w=25, using Linear Regression}
+    \label{fig:err_lin_reg_pi4}
+\end{figure}
 % talk about one-way anova results and tukey ttest on waiting time
 % place plot
 % talk about one way anova results and tukey ttest on abd error rate
 
 % experiment set up for SVR
 % place plot of all policies abs error rate for SVR
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.3]{imgs/svr_rbf_R3_w25.png}
+    \caption{Absolute error difference for HT sensor system, s=R3, w=25,
+    using Support Vector Regression with RBF Kernel 
+    given an artificial change at 40th window iteration}
+    \label{fig:err_rbf_svr_R3}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.3]{imgs/svr_rbf_R5_w25.png}
+    \caption{Absolute error difference for HT sensor system, s=R5, w=25,
+    using Support Vector Regression with RBF Kernel 
+    given an artificial change at 40th window iteration}
+    \label{fig:err_rbf_svr_R5}
+\end{figure}
 % talk about one-way anova results and tukey ttest on waiting time
 % place plot
 % talk about one way anova results and tukey ttest on abd error rate
