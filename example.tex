@@ -116,10 +116,10 @@ From the reward function in (\ref{reward}) we can derive the expected reward fun
 \end{equation}
 
 Since we aim is to not exceed the specified threshold $\Theta$, then the result of the reward function has to always be a positive value $E[V_t] > 0$. From this we can derive the probability of the absolute error sum not exceeding the threshold.
-\begin{multline*}
+\begin{multline}
     E[V_t] = (t + B) * P(S_t \leq \Theta) - B > 0\\
     =>  P(S_t \leq \Theta) > \frac{B}{t+B}
-\end{multline*}
+\end{multline}
 \emph{\textbf{End of proof}}\\
 
 Given that $V_{t+1}$ is independent from $S_t \leq \Theta$, therefore we can calculate the conditional expectation of \newline$E[V_{t+1}|S_t\leq\Theta]$ as it will equal the expected value of $E[V_{t+1}]$.
@@ -128,9 +128,9 @@ Given that $V_{t+1}$ is independent from $S_t \leq \Theta$, therefore we can cal
     E[V_{t+1}|S_t\leq\Theta] &= (t+1+B)*P(S_{t+1}\leq\Theta) - B
 \end{align*}
 However, it is known from Eq.(\ref{eq:1}) that:
-\begin{equation*}
+\begin{equation}
     S_{t+1} = S_t + Z_{t+1}
-\end{equation*}
+\end{equation}
 Therefore, 
 \begin{align*}
     P(S_{t+1} \leq \Theta) &= P(S_t + Z \leq \Theta)\\
@@ -142,6 +142,13 @@ Therefore,
     E[V_{t+1}|S_t\leq\Theta] = (t+1+B)*CDF_{Z}(\Theta - S_t) - B
 \end{equation}
 
+As we aim to postpone sending the model if we know that the next iteration will increase the reward value, based on the currently known cumulative absolute error sum, then we need to stop once the expected current reward is more than the expected future reward.
+
+\begin{align*}
+    E[V_{t}|S_t\leq\Theta] &> E[V_{t+1}|S_t\leq\Theta]\\
+    t &> (t+1+B)*CDF_{Z}(\Theta - S_t) - B\\
+    CDF_{Z}(\Theta - S_t) &< \frac{t+B}{t+1+B}\\
+\end{align*}
 
 \subsection{Compared Policies}
 
@@ -270,20 +277,32 @@ Two time-series datasets will be used in order to apply the proposed approach an
 % place plot of all policies abs error rate for lin reg
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.3]{imgs/lin_reg_pi3_w25.png}
+    \includegraphics[scale=0.33]{imgs/lin_reg_pi3_w25.png}
     \caption{Absolute error difference for USV sensor system, s=pi3, w=25, using Linear Regression}
     \label{fig:err_lin_reg_pi3}
 \end{figure}
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.3]{imgs/lin_reg_pi4_w25.png}
+    \includegraphics[scale=0.33]{imgs/lin_reg_pi4_w25.png}
     \caption{Absolute error difference for USV sensor system, s=pi4, w=25, using Linear Regression}
     \label{fig:err_lin_reg_pi4}
 \end{figure}
 % talk about one-way anova results and tukey ttest on waiting time
 % place plot
-% talk about one way anova results and tukey ttest on abd error rate
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.35]{imgs/lin_reg_pi3_waiting_plot_diff_means.png}
+    \caption{Policy comparison on waiting time using using Linear Regression}
+    \label{fig:svr_rbf_R5_waiting_plot_diff_means}
+\end{figure}
+% talk about one way anova results and tukey ttest on abs error rate
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.35]{imgs/lin_reg_pi3_error_plot_diff_means.png}
+    \caption{Policy comparison on absolute error rate time using Linear Regression}
+    \label{fig:svr_rbf_R5_waiting_plot_diff_means}
+\end{figure}
 
 \subsection{Experimentation with Support Vector Regression models}
 
@@ -293,7 +312,7 @@ After some analysis of the data it was found out that the initial 100 datapoints
 % place plot of all policies abs error rate for SVR
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.3]{imgs/svr_rbf_R3_w25.png}
+    \includegraphics[scale=0.33]{imgs/svr_rbf_R3_w25.png}
     \caption{Absolute error difference for HT sensor system, s=R3, w=25,
     using Support Vector Regression with RBF Kernel 
     given an artificial change at 40th window iteration}
@@ -302,7 +321,7 @@ After some analysis of the data it was found out that the initial 100 datapoints
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.3]{imgs/svr_rbf_R5_w25.png}
+    \includegraphics[scale=0.33]{imgs/svr_rbf_R5_w25.png}
     \caption{Absolute error difference for HT sensor system, s=R5, w=25,
     using Support Vector Regression with RBF Kernel 
     given an artificial change at 40th window iteration}
@@ -310,7 +329,19 @@ After some analysis of the data it was found out that the initial 100 datapoints
 \end{figure}
 % talk about one-way anova results and tukey ttest on waiting time
 % place plot
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.35]{imgs/svr_rbf_R5_waiting_plot_diff_means.png}
+    \caption{Policy comparison on waiting time using Support Vector Regression with RBF Kernel}
+    \label{fig:svr_rbf_R5_waiting_plot_diff_means}
+\end{figure}
 % talk about one way anova results and tukey ttest on abs error rate
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.35]{imgs/svr_rbf_R5_error_plot_diff_means.png}
+    \caption{Policy comparison on absolute error rate time using Support Vector Regression with RBF Kernel}
+    \label{fig:svr_rbf_R5_waiting_plot_diff_means}
+\end{figure}
 
 \subsection{Evaluation summary}
 % place table with all policies and say when each is good for accurate models and when is good to wait and so on
