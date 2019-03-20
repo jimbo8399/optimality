@@ -2,6 +2,8 @@
 
 \usepackage{graphicx}
 \usepackage[numbers,sort&compress]{natbib}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 \usepackage{amsmath}
 
 \begin{document}
@@ -104,7 +106,6 @@ Taking into consideration that the expected reward $E[V_t]$ must be a positive v
 \begin{equation}
     P(S_t \leq \Theta) > \frac{B}{t+B}
 \end{equation}
-
 \emph{\textbf{Proof:}} \\
 From the reward function in (\ref{reward}) we can derive the expected reward function $E[V_t]$. 
 \begin{equation}
@@ -114,24 +115,32 @@ From the reward function in (\ref{reward}) we can derive the expected reward fun
 \end{split}
 \end{equation}
 
-Given that we aim is to not exceed the specified threshold $\Theta$, then the result of the reward function has to always be a positive value $E[V_t] > 0$. From this we can derive the probability of the absolute error sum not exceeding the threshold.
+Since we aim is to not exceed the specified threshold $\Theta$, then the result of the reward function has to always be a positive value $E[V_t] > 0$. From this we can derive the probability of the absolute error sum not exceeding the threshold.
 \begin{multline*}
     E[V_t] = (t + B) * P(S_t \leq \Theta) - B > 0\\
     =>  P(S_t \leq \Theta) > \frac{B}{t+B}
 \end{multline*}
+\emph{\textbf{End of proof}}\\
 
+Given that $V_{t+1}$ is independent from $S_t \leq \Theta$, therefore we can calculate the conditional expectation of \newline$E[V_{t+1}|S_t\leq\Theta]$ as it will equal the expected value of $E[V_{t+1}]$.
 \begin{align*}
-    E[V_{t+1}|S_t\leq\Theta] = (t+1+B)*P(S_{t+1}\leq\Theta) - B
+    E[V_{t+1}|S_t\leq\Theta] &= E[V_{t+1}]\\
+    E[V_{t+1}|S_t\leq\Theta] &= (t+1+B)*P(S_{t+1}\leq\Theta) - B
 \end{align*}
 However, it is known from Eq.(\ref{eq:1}) that:
 \begin{equation*}
-    S_{t+1} = Z_{t+1} + S_t
+    S_{t+1} = S_t + Z_{t+1}
 \end{equation*}
-
 Therefore, 
-\begin{equation*}
-    P(S_t + Z \leq \Theta) = P(Z\leq\Theta-S_t)
-\end{equation*}
+\begin{align*}
+    P(S_{t+1} \leq \Theta) &= P(S_t + Z \leq \Theta)\\
+                           &= P(Z\leq\Theta-S_t)\\
+                           &= CDF_{Z}(\Theta - S_t)
+\end{align*}
+
+\begin{equation}
+    E[V_{t+1}|S_t\leq\Theta] = (t+1+B)*CDF_{Z}(\Theta - S_t) - B
+\end{equation}
 
 
 \subsection{Compared Policies}
@@ -148,19 +157,87 @@ Using a fraction $\alpha$ of the median value the policy determines whether the 
 
 This policy is expected to reduce communication by being more tolerant towards initial small abrupt changes and detecting continuously increasing values.
 
-==TODO: place a pseudo code snippet==
+\begin{algorithm}[h]
+\caption{Policy Median}\label{polM}
+\begin{algorithmic}
+\Procedure{obtainMean}{}
+    \State $X \gets$ fromDataStream
+    \State $y \gets$ fromDataStream
+    \State $model \gets$ fit($X,y$)
+    
+    \For{$i = 0$ \textbf{to} $100$}
+        \State $X \gets$ fromDataStream
+        \State $y \gets$ fromDataStream
+        \State $newmodel \gets$ fit($X,y$)
+        \State $mse \gets$ calcError($model,X,y$)
+        \State $msePrime \gets$ calcError($newmodel,X,y$)
+        \State $all \gets \mid error - erroprime \mid$
+    \EndFor
+    \State $median \gets$ calcMedian($all$)
+\EndProcedure
+
+\State $X \gets$ fromDataStream
+\State $y \gets$ fromDataStream
+\State $model \gets$ fit($X,y$)
+\While{$True$}
+    \State $X \gets$ fromDataStream
+    \State $y \gets$ fromDataStream
+    \State $newModel \gets$ fit($X,y$)
+    \If{$\mid error - errorprime \mid > \alpha * median$}
+        \State $model \gets newModel$ \Comment{communicate model}
+    \EndIf
+    \If{$iteration \mod 100 = 0$}
+        \State updateMedian()
+    \EndIf
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
 
 \subsubsection{Random Policy}
 The random policy is intended to be sending updates of the latest model to the edge gateway with the same probability as the OST policy.
+
 The aim of the policy is to show that even if the number of updates is approximated to the optimal value, the accuracy of the models at the edge gateway would still suffer a decrease.
 
-==TODO: place a pseudo code snippet==
+\begin{algorithm}[h]
+\caption{Policy Random}\label{polR}
+\begin{algorithmic}
+\State $X \gets$ fromDataStream
+\State $y \gets$ fromDataStream
+\State $model \gets$ fit($X,y$)
+
+\While{$True$}
+    \State $X \gets$ fromDataStream
+    \State $y \gets$ fromDataStream
+    \State $newModel \gets$ fit($X,y$)
+    \State $rand \gets$ genZeroOrOne($probability$)
+    \If{$rand = 1$}
+        \State $model \gets newModel$ \Comment{communicate model}
+    \EndIf
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
 
 \subsubsection{Accuracy Policy}
 The accuracy policy works by comparing the MSE of the old model and the most up-to-date model and once a decrease in the accuracy is detected, the latest model is sent to the edge gateway.
 The policy aims to present a naive algorithm for reducing communication but preserving accuracy as high as possible.
 
-==TODO: place a pseudo code snippet==
+\begin{algorithm}[h]
+\caption{Policy Accuracy}\label{polA}
+\begin{algorithmic}
+\State $X \gets$ fromDataStream
+\State $y \gets$ fromDataStream
+\State $model \gets$ fit($X,y$)
+
+\While{$True$}
+    \State $X \gets$ fromDataStream
+    \State $y \gets$ fromDataStream
+    \State $newModel \gets$ fit($X,y$)
+    \If{$error > errorprime $}
+        \State $model \gets newModel$ \Comment{communicate model}
+    \EndIf
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
 
 \subsubsection{CuSum Policy}
 The algorithm implemented here relies on the direct form of the CuSum algorithm explained by Granjon \cite{cusum_pierre}.
@@ -187,25 +264,30 @@ When a new absolute error difference is calculated it is then fitted in the two 
 Two time-series datasets will be used in order to apply the proposed approach and perform the previously discussed experiments.
 \\$\bullet$ \textbf{GNFUV Unmanned Surface Vehicles Sensor Data Data Set} \cite{harth2018} - a dataset produced by 4 Unmanned Surface Vehicle sensing devices which observed and recorded timestamped multivariate contextual environmental data using temperature and humidity sensors. The collected data will be associated with the Linear Regression task performed in the experiments for each policy. The generated linear regression models are aimed at predicting the environmental humidity based on the sensed temperature.
 \\$\bullet$ \textbf{Gas sensors for home activity monitoring Data Set } \cite{HUERTA2016169} - a timestamped dataset containing readings from temperature, humidity and 8 metal-oxide(MOX) gas sensors of a contained environment where either or not a stimuli is presented. The collected data will be used in the Support Vector Regression(SVR) (with an RBF kernel) task in order to assess the 5 policies. The generated support vector models are aimed at predicting the level of MOX gas based on the vector of detected humidity and temperature.
-\subsection{Experimentation}
+\subsection{Experimentation with Linear Regression models}
 % experiment set up for Lin Reg
+
 % place plot of all policies abs error rate for lin reg
 \begin{figure}[h]
     \centering
     \includegraphics[scale=0.3]{imgs/lin_reg_pi3_w25.png}
-    \caption{Absolute error difference for SUV sensor system, s=pi3, w=25, using Linear Regression}
+    \caption{Absolute error difference for USV sensor system, s=pi3, w=25, using Linear Regression}
     \label{fig:err_lin_reg_pi3}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \includegraphics[scale=0.3]{imgs/lin_reg_pi4_w25.png}
-    \caption{Absolute error difference for SUV sensor system, s=pi4, w=25, using Linear Regression}
+    \caption{Absolute error difference for USV sensor system, s=pi4, w=25, using Linear Regression}
     \label{fig:err_lin_reg_pi4}
 \end{figure}
 % talk about one-way anova results and tukey ttest on waiting time
 % place plot
 % talk about one way anova results and tukey ttest on abd error rate
+
+\subsection{Experimentation with Support Vector Regression models}
+
+After some analysis of the data it was found out that the initial 100 datapoints of the HT sensor dataset contains 
 
 % experiment set up for SVR
 % place plot of all policies abs error rate for SVR
@@ -228,7 +310,7 @@ Two time-series datasets will be used in order to apply the proposed approach an
 \end{figure}
 % talk about one-way anova results and tukey ttest on waiting time
 % place plot
-% talk about one way anova results and tukey ttest on abd error rate
+% talk about one way anova results and tukey ttest on abs error rate
 
 \subsection{Evaluation summary}
 % place table with all policies and say when each is good for accurate models and when is good to wait and so on
