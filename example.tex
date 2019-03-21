@@ -90,42 +90,56 @@ Given that the latest model of the sensor node satisfies a certain criteria, a d
 The postponing policy is based on the CuSum algorithm \cite{page1954}, which detects a change in the distribution using the cumulative sum of the absolute error difference between the two MSEs:
 \begin{align}
     Z_k &= \Delta e_k = | e'_k - e_k |\\
-    S_n &= \Delta e_n + \Sigma_{k=0}^{n-1} \Delta e_k\\
-    S_n &= Z_k + S_{n-1}\label{eq:1}
+    S_{n+1} &= \Delta e_{n+1} + \Sigma_{k=0}^n \Delta e_k\\
+    S_n &= S_{n-1} + Z_n\label{eq:1}
 \end{align}
 
-A threshold $\Theta$ is placed to determine the acceptable error sum and is used to determine if the algorithm should be penalised or rewarded with a penalty/reward value $V_t$.
+A threshold $\Theta$ is placed to determine the acceptable error sum and is used to determine if the algorithm should be rewarded with a reward value $v_t$ for $V_t$.
 \begin{equation}\label{reward}
     V_t = \Bigg\{ \begin{tabular}{c}
                   $t\ \text{if}\ S_t \leq \Theta$ \\
                   $-B\ \text{if}\ S_t > \Theta$
                   \end{tabular}
 \end{equation}
-
-Taking into consideration that the expected reward $E[V_t]$ must be a positive value, we can calculate the probability interval that the cumulative sum is less than or equal to the set threshold.
-\begin{equation}
-    P(S_t \leq \Theta) > \frac{B}{t+B}
-\end{equation}
-\emph{\textbf{Proof:}} \\
+% Taking into consideration that the expected reward $E[V_t]$ must be a positive value, we can calculate the probability interval that the cumulative sum is less than or equal to the set threshold.
+% \begin{equation}
+%     P(S_t \leq \Theta) > \frac{B}{t+B}
+% \end{equation}
+% \emph{\textbf{Proof:}} \\
 From the reward function in (\ref{reward}) we can derive the expected reward function $E[V_t]$. 
 \begin{equation}
 \begin{split}
-    E[V_t] & = t * P(S_t \leq \Theta) + (-B * P(S_t > \Theta))\\
-    & = t * P(S_t \leq \Theta) - B * (1 - P(S_t \leq \Theta))
+    E[V_t] & = t \cdot P(S_t \leq \Theta) + (-B \cdot P(S_t > \Theta))\\
+    & = t \cdot P(S_t \leq \Theta) - B \cdot (1 - P(S_t \leq \Theta))\\
+    & = (t + B) \cdot P(S_t \leq \Theta) - B
 \end{split}
 \end{equation}
+Let filtration $\mathbb{F}_{t} = \{S_{1}, S_{2}, \ldots, S_{t}\} \cup \{Z_{1}, Z_{2}, \ldots, Z_{t}\}$ be all the realisation of all random variables up to $t$.
+The conditional expectation of the reward $V_{t+1}$ given filtration $\mathbb{F}_{t}$ is then (expressed as martingale):
 
-Since we aim is to not exceed the specified threshold $\Theta$, then the result of the reward function has to always be a positive value $E[V_t] > 0$. From this we can derive the probability of the absolute error sum not exceeding the threshold.
-\begin{multline}
-    E[V_t] = (t + B) * P(S_t \leq \Theta) - B > 0\\
-    =>  P(S_t \leq \Theta) > \frac{B}{t+B}
-\end{multline}
-\emph{\textbf{End of proof}}\\
+\begin{align*}
+    &\mathbb{E}[V_{t+1}|\mathbb{F}_{t}] = \mathbb{E}[V_{t+1}]\\
+    &(t + 1 + B) \cdot P(S_{t+1} \leq \Theta | \mathbb{F}_t) - B
+    &(t+1)\cdot P(S_{t+1} \leq \Theta | \mathbb{F}_{t}) - B\cdot (1 - P(S_{t+1} \leq \Theta | \mathbb{F}_{t}))= \\ 
+    &(t+1)\cdot P(S_{t}+Z_{t+1} \leq \Theta | \mathbb{F}_{t}) - B\cdot (1 - P(S_{t}+Z_{t+1} \leq \Theta | \mathbb{F}_{t}))=\\
+    &(t+1)\cdot P(Z_{t+1} \leq \Theta-S_{t} | \mathbb{F}_{t}) - B\cdot (1 - P(Z_{t+1} \leq \Theta-S_{t+1} | \mathbb{F}_{t}))=\\
+    &(t+1)\cdot F_{Z}(\Theta-S_{t}) - B\cdot (1 - F_{Z}(\Theta-S_{t}))
+\end{align*}
+
+We stop at the first time instance $t$, where the current reward $V_{t}$ is greater than the future reward at the next time instance $t+1$. 
+Or, $V_{t} \geq \mathbb{E}[V_{t+1}|\mathbb{F}_{t}]$.
+
+% Since we aim to not exceed the specified threshold $\Theta$, then the result of the reward function has to always be a positive value $E[V_t] > 0$. From this we can derive the probability of the absolute error sum not exceeding the threshold.
+% \begin{multline}
+%     E[V_t] = (t + B) \cdot P(S_t \leq \Theta) - B > 0\\
+%     =>  P(S_t \leq \Theta) > \frac{B}{t+B}
+% \end{multline}
+% \emph{\textbf{End of proof}}\\
 
 Given that $V_{t+1}$ is independent from $S_t \leq \Theta$, therefore we can calculate the conditional expectation of \newline$E[V_{t+1}|S_t\leq\Theta]$ as it will equal the expected value of $E[V_{t+1}]$.
 \begin{align*}
     E[V_{t+1}|S_t\leq\Theta] &= E[V_{t+1}]\\
-    E[V_{t+1}|S_t\leq\Theta] &= (t+1+B)*P(S_{t+1}\leq\Theta) - B
+    E[V_{t+1}|S_t\leq\Theta] &= (t+1+B) \cdot P(S_{t+1}\leq\Theta) - B
 \end{align*}
 However, it is known from Eq.(\ref{eq:1}) that:
 \begin{equation}
@@ -133,20 +147,20 @@ However, it is known from Eq.(\ref{eq:1}) that:
 \end{equation}
 Therefore, 
 \begin{align*}
-    P(S_{t+1} \leq \Theta) &= P(S_t + Z \leq \Theta)\\
-                           &= P(Z\leq\Theta-S_t)\\
+    P(S_{t+1} \leq \Theta | \mathbb{F}_t) &= P(S_t + Z \leq \Theta| \mathbb{F}_t)\\
+                           &= P(Z\leq\Theta-S_t| \mathbb{F}_t)\\
                            &= CDF_{Z}(\Theta - S_t)
 \end{align*}
 
 \begin{equation}
-    E[V_{t+1}|S_t\leq\Theta] = (t+1+B)*CDF_{Z}(\Theta - S_t) - B
+    \mathbb{E}[V_{t+1}|\mathbb{F}_{t}] = (t+1+B) \cdot CDF_{Z}(\Theta - S_t) - B
 \end{equation}
 
 As we aim to postpone sending the model if we know that the next iteration will increase the reward value, based on the currently known cumulative absolute error sum, then we need to stop once the expected current reward is more than the expected future reward.
 
 \begin{align*}
     E[V_{t}|S_t\leq\Theta] &> E[V_{t+1}|S_t\leq\Theta]\\
-    t &> (t+1+B)*CDF_{Z}(\Theta - S_t) - B\\
+    t &> (t+1+B)\cdot CDF_{Z}(\Theta - S_t) - B\\
     CDF_{Z}(\Theta - S_t) &< \frac{t+B}{t+1+B}\\
 \end{align*}
 
@@ -167,7 +181,7 @@ This policy is expected to reduce communication by being more tolerant towards i
 \begin{algorithm}[h]
 \caption{Policy Median}\label{polM}
 \begin{algorithmic}
-\Procedure{obtainMean}{}
+\Procedure{obtainMedian}{}
     \State $X \gets$ fromDataStream
     \State $y \gets$ fromDataStream
     \State $model \gets$ fit($X,y$)
@@ -190,7 +204,7 @@ This policy is expected to reduce communication by being more tolerant towards i
     \State $X \gets$ fromDataStream
     \State $y \gets$ fromDataStream
     \State $newModel \gets$ fit($X,y$)
-    \If{$\mid error - errorprime \mid > \alpha * median$}
+    \If{$\mid error - errorprime \mid > \alpha \cdot median$}
         \State $model \gets newModel$ \Comment{communicate model}
     \EndIf
     \If{$iteration \mod 100 = 0$}
