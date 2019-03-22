@@ -89,7 +89,7 @@ Given that the latest model of the sensor node satisfies a certain criteria, a d
 \subsection*{Optimal Postponing Policy}
 The postponing policy is based on the CuSum algorithm \cite{page1954}, which detects a change in the distribution using the cumulative sum of the absolute error difference between the two MSEs:
 \begin{align}
-    Z_k &= \Delta e_k = | e'_k - e_k |\\
+    Z_n &= \Delta e_n = | e'_n - e_n |\\
     S_{n+1} &= \Delta e_{n+1} + \Sigma_{k=0}^n \Delta e_k\\
     S_n &= S_{n-1} + Z_n\label{eq:1}
 \end{align}
@@ -120,6 +120,7 @@ The conditional expectation of the reward $V_{t+1}$ given filtration $\mathbb{F}
 \begin{align*}
     &\mathbb{E}[V_{t+1}|\mathbb{F}_{t}] = \mathbb{E}[V_{t+1}]\\
     &(t + 1 + B) \cdot P(S_{t+1} \leq \Theta | \mathbb{F}_t) - B
+    %%%%%%%%%%%%%%%%%%%%%%%
     &(t+1)\cdot P(S_{t+1} \leq \Theta | \mathbb{F}_{t}) - B\cdot (1 - P(S_{t+1} \leq \Theta | \mathbb{F}_{t}))= \\ 
     &(t+1)\cdot P(S_{t}+Z_{t+1} \leq \Theta | \mathbb{F}_{t}) - B\cdot (1 - P(S_{t}+Z_{t+1} \leq \Theta | \mathbb{F}_{t}))=\\
     &(t+1)\cdot P(Z_{t+1} \leq \Theta-S_{t} | \mathbb{F}_{t}) - B\cdot (1 - P(Z_{t+1} \leq \Theta-S_{t+1} | \mathbb{F}_{t}))=\\
@@ -164,6 +165,35 @@ As we aim to postpone sending the model if we know that the next iteration will 
     CDF_{Z}(\Theta - S_t) &< \frac{t+B}{t+1+B}\\
 \end{align*}
 
+\begin{algorithm}
+\caption{Policy OP}\label{polOP}
+\begin{algorithmic}
+\State $rewardDist \gets$ obtainRewardDist() \Comment{Apendix \ref{rewarddist}}
+
+\State $X_0, y_0 \gets$ fromDataStream
+\State $X_1, y_1 \gets$ fromDataStream
+\State $model \gets$ fit($X_1, y_1$)
+\State $mse \gets$ calcError($model,X_0,y_0$)
+\State $msePrime \gets$ calcError($newModel,X_1,y_1$)
+\State $absError \gets \mid mse - msePrime \mid$
+\State $absErrorSum \gets absError$
+
+\While{$True$}
+    \State $X, y \gets$ fromDataStream
+    \State $newModel \gets$ fit($X,y$)
+    \State $mse \gets$ calcError($model,X,y$)
+    \State $msePrime \gets$ calcError($newModel,X,y$)
+    \State $absError \gets \mid mse - msePrime \mid$
+    \If{cdf($rewardDist, (\Theta-absErrorSum$)) <\\\hspace{4.4cm} $(t+B)/(t+1+B)$}
+        \State $model \gets newModel$ \Comment{communicate model}
+        \State $absErrorSum \gets absError$
+        \State $t \gets 0$
+    \EndIf
+    \State $t \gets t + 1$
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
+
 \subsection{Compared Policies}
 
 In order to evaluate the performance of the presented algorithm 4 other policies are implemented, which rely either on certain statistics of the data or on pure randomness:\\
@@ -182,29 +212,25 @@ This policy is expected to reduce communication by being more tolerant towards i
 \caption{Policy Median}\label{polM}
 \begin{algorithmic}
 \Procedure{obtainMedian}{}
-    \State $X \gets$ fromDataStream
-    \State $y \gets$ fromDataStream
+    \State $X, y \gets$ fromDataStream
     \State $model \gets$ fit($X,y$)
     
     \For{$i = 0$ \textbf{to} $100$}
-        \State $X \gets$ fromDataStream
-        \State $y \gets$ fromDataStream
-        \State $newmodel \gets$ fit($X,y$)
+        \State $X, y \gets$ fromDataStream
+        \State $newModel \gets$ fit($X,y$)
         \State $mse \gets$ calcError($model,X,y$)
-        \State $msePrime \gets$ calcError($newmodel,X,y$)
-        \State $all \gets \mid error - erroprime \mid$
+        \State $msePrime \gets$ calcError($newModel,X,y$)
+        \State $all \gets \mid error - msePrime \mid$
     \EndFor
     \State $median \gets$ calcMedian($all$)
 \EndProcedure
 
-\State $X \gets$ fromDataStream
-\State $y \gets$ fromDataStream
+\State $X, y \gets$ fromDataStream
 \State $model \gets$ fit($X,y$)
 \While{$True$}
-    \State $X \gets$ fromDataStream
-    \State $y \gets$ fromDataStream
+    \State $X, y \gets$ fromDataStream
     \State $newModel \gets$ fit($X,y$)
-    \If{$\mid error - errorprime \mid > \alpha \cdot median$}
+    \If{$\mid error - msePrime \mid > \alpha \cdot median$}
         \State $model \gets newModel$ \Comment{communicate model}
     \EndIf
     \If{$iteration \mod 100 = 0$}
@@ -222,13 +248,11 @@ The aim of the policy is to show that even if the number of updates is approxima
 \begin{algorithm}[h]
 \caption{Policy Random}\label{polR}
 \begin{algorithmic}
-\State $X \gets$ fromDataStream
-\State $y \gets$ fromDataStream
+\State $X,y \gets$ fromDataStream
 \State $model \gets$ fit($X,y$)
 
 \While{$True$}
-    \State $X \gets$ fromDataStream
-    \State $y \gets$ fromDataStream
+    \State $X, y \gets$ fromDataStream
     \State $newModel \gets$ fit($X,y$)
     \State $rand \gets$ genZeroOrOne($probability$)
     \If{$rand = 1$}
@@ -245,13 +269,11 @@ The policy aims to present a naive algorithm for reducing communication but pres
 \begin{algorithm}[h]
 \caption{Policy Accuracy}\label{polA}
 \begin{algorithmic}
-\State $X \gets$ fromDataStream
-\State $y \gets$ fromDataStream
+\State $X, y \gets$ fromDataStream
 \State $model \gets$ fit($X,y$)
 
 \While{$True$}
-    \State $X \gets$ fromDataStream
-    \State $y \gets$ fromDataStream
+    \State $X, y \gets$ fromDataStream
     \State $newModel \gets$ fit($X,y$)
     \If{$error > errorprime $}
         \State $model \gets newModel$ \Comment{communicate model}
@@ -275,9 +297,47 @@ Given the assumption that the absolute error differences $Z_0, Z_1, \dotsc , Z_n
     \label{fig:goodvsbad}
 \end{figure}
 
-When a new absolute error difference is calculated it is then fitted in the two probability density function for each of the two distributions. The logarithmic ratio of the probability of the absolute error belonging to either the good or the bad distribution determines whether $\mathcal{H}_0$ or $\mathcal{H}_1$ is rejected.
+When a new absolute error difference is calculated it is then fitted in the two probability density function for each of the two distributions. The logarithmic ratio of the probability of the absolute error belonging to either the good or the bad distribution determines whether $\mathcal{H}_0$ or $\mathcal{H}_1$ is rejected. Once the cumulative sum of the logarithmic ratio passes an initially determined threshold $\Theta$ the model is communicated to the edge gateway.
 
-==TODO: place a pseudo code snippet==
+\begin{algorithm}[!h]
+\caption{Policy \textit{CuSum}}\label{polCusum}
+\begin{algorithmic}
+%%%Bad dist
+\State $badDist \gets$ obtainBadDist() \Comment{Apendix \ref{baddist}}
+%%Good dist
+\State $goodDist \gets$ obtainGoodDist() \Comment{Apendix \ref{gooddist}}
+\State $X_0, y_0 \gets$ fromDataStream
+\State $X_1, y_1 \gets$ fromDataStream
+\State $model \gets$ fit($X_1, y_1$)
+\State $mse \gets$ calcError($model,X_0,y_0$)
+\State $msePrime \gets$ calcError($newModel,X_1,y_1$)
+\State $absError \gets \mid mse - msePrime \mid$
+\State $goodProb \gets$ pdf($goodDist,absError$)
+\State $badProb \gets$ pdf($badDist,absError$)
+\State $logRatio \gets \log(badProb/goodProb)$
+\State $logRatioSum \gets logRatio$
+\State $logVector \gets [logRatioSum]$)
+\While{$True$}
+    \State $X, y \gets$ fromDataStream
+    \State $newModel \gets$ fit($X,y$)
+    \State $mse \gets$ calcError($model,X,y$)
+    \State $msePrime \gets$ calcError($newModel,X,y$)
+    \State $absError \gets \mid mse - msePrime \mid$
+    \State $goodProb \gets$ pdf($goodDist, absError$)
+    \State $badProb \gets$ pdf($badDist, absError$)
+    \State $logRatio \gets \log(badProb/goodProb)$
+    \State $logRatioSum \gets logRatioSum + logRatio$
+    \State $decisionValue \gets logRatio - $ min($logVector$)
+    \State $logVector$.append($logRatioSum$)
+
+    \If{$decisionValue > \Theta$}
+        \State $model \gets newModel$ \Comment{communicate model}
+        \State $logRatioSum \gets logRatio$
+        \State $logVector \gets [logRatio]$
+    \EndIf
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
 
 \section{Evaluation}
 
@@ -369,6 +429,95 @@ This is optional; it is a location for you to thank people
 
 \bibliographystyle{abbrv}
 \bibliography{example.bib}
+
+\pagebreak
+
+\begin{appendix}
+
+\section{Additional Pseudocode}\label{rewarddist}
+\begin{algorithm}[h]
+\caption{Obtain Reward Distribution}
+\begin{algorithmic}
+\Function{obtainRewardDist}{}
+    \State $X, y \gets$ fromDataStream
+    \State $model \gets$ fit($X,y$)
+    \State $absoluteSum \gets 0$
+    \For{$i = 0$ \textbf{to} $100$}
+        \State $X, y \gets$ fromDataStream
+        \State $newModel \gets$ fit($X,y$)
+        \State $mse \gets$ calcError($model,X,y$)
+        \State $msePrime \gets$ calcError($newModel,X,y$)
+        \State $absMse \gets \mid error - msePrime \mid$
+        \State $absoluteSum \gets absoluteSum + absMse$
+        \State $absoluteMseVector$.append($absMse$)
+        
+        \If{$absoluteSum \leq \Theta$}
+            \State $V_t \gets t$
+        \Else
+            \State $V_t \gets -B$
+        \EndIf
+    \EndFor
+    \State $mean \gets$ calcMean($absoluteMseVector$)
+    \State $variance \gets$ calcVar($absoluteMseVector$)
+    
+    \State $shapeReward \gets mean^2/variance$
+    \State $scaleReward \gets variance/mean$\\
+    \Return Gamma($shapeReward, scaleReward$)
+    
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\section{Additional Pseudocode}\label{baddist}
+\begin{algorithm}[h]
+\caption{Function to Obtain Bad Distribution}
+\begin{algorithmic}
+\Function{obtainBadDist}{}
+    \State $X, y \gets$ fromDataStream
+    \State $model \gets$ fit($X,y$)
+    \For{$i = 0$ \textbf{to} $100$}
+        \State $X, y \gets$ fromDataStream
+        \State $newModel \gets$ fit($X,y$)
+        \State $mse \gets$ calcError($model,X,y$)
+        \State $msePrime \gets$ calcError($newModel,X,y$)
+        \State $allBad \gets \mid error - msePrime \mid$
+    \EndFor
+    \State $mean \gets$ calcMean($allBad$)
+    \State $variance \gets$ calcVar($allBad$)
+    \State $shapeBad \gets mean^2/variance$
+    \State $scaleBad \gets variance/mean$
+    \State $badDist \gets$ Gamma($shapeBad, scaleBad$)\\
+    \Return $badDist$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\section{Additional Pseudocode}\label{gooddist}
+\begin{algorithm}[h]
+\caption{Function to Obtain Good Distribution}
+\begin{algorithmic}
+\Function{obtainGoodDist}{}
+    \State $X, y \gets$ fromDataStream
+    \State $model \gets$ fit($X,y$)
+    \For{$i = 0$ \textbf{to} $100$}
+        \State $X, y \gets$ fromDataStream
+        \State $newModel \gets$ fit($X,y$)
+        \State $mse \gets$ calcError($model,X,y$)
+        \State $msePrime \gets$ calcError($newModel,X,y$)
+        \State $absMse \gets \mid error - msePrime \mid$
+        \State $model \gets newModel$
+    \EndFor
+    \State $mean \gets$ calcMean($absMse$)
+    \State $variance \gets$ calcVar($absMse$)
+    \State $shapeGood \gets mean^2/variance$
+    \State $scaleGood \gets variance/mean$
+    \State $goodDist \gets$ Gamma($shapeGood, scaleGood$)\\
+    \Return $goodDist$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\end{appendix}
 
 
 \end{document}
