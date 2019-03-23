@@ -347,6 +347,28 @@ Two time-series datasets will be used in order to apply the proposed approach an
 \\$\bullet$ \textbf{Gas sensors for home activity monitoring Data Set } \cite{HUERTA2016169} - a timestamped dataset containing readings from temperature, humidity and 8 metal-oxide(MOX) gas sensors of a contained environment where either or not a stimuli is presented. The collected data will be used in the Support Vector Regression(SVR) (with an RBF kernel) task in order to assess the 5 policies. The generated support vector models are aimed at predicting the level of MOX gas based on the vector of detected humidity and temperature.
 \subsection{Experimentation with Linear Regression models}
 % experiment set up for Lin Reg
+The experiment using linear regression models was performed using the initial 100 datapoints of the dataset for any pre-processing analysis depending on the targeted policy and the rest of the dataset was used to simulate an online approach to each of the 5 policies.
+
+%SHOULD I specify the used parameter values
+Three of the policies required some parameterisation which needs to be mentioned in advance.
+% $\bullet$ \emph{CuSum policy:}
+% $\bullet$ \emph{Random policy:}
+% $\bullet$ \emph{OP policy:}
+% $\bullet$ \emph{Median policy:}
+The Median policy was performed using an $\alpha$ fraction of the median of the first 100 datapoints, in this case $\alpha$ was set to 0.5.
+
+The CuSum policy relies on a threshold parameter $\Theta = 2$, up to which the cumulative sum of the logarithm ratio is allowed to increase.
+
+The OP policy requires two parameter values, one for the error sum threshold and one for the penalty value. The boxplot analysis was performed by specifying a threshold $\Theta$ for the OP policy and running the simulation with penalty values ranging from 2 to 15. 
+In \ref{fig:boxplot_linreg} for the USV sensor "pi3" it is shown that the highest mean on update delaying is achieved using a threshold $\Theta = 3$ and a penalty value $B=14$.
+These values are then used in the complete simulation of the policy comparison.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.4]{imgs/boxplot_linreg_waiting_pi3.png}
+    \caption{Waiting time boxplot for $\Theta=3$ and $B$ values in the range 2 to 15}
+    \label{fig:boxplot_linreg}
+\end{figure}
 
 % place plot of all policies abs error rate for lin reg
 \begin{figure}[h]
@@ -358,41 +380,44 @@ Two time-series datasets will be used in order to apply the proposed approach an
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.33]{imgs/lin_reg_pi4_w25.png}
-    \caption{Absolute error difference for USV sensor system, s=pi4, w=25, using Linear Regression}
+    \includegraphics[scale=0.33]{imgs/comm_lin_reg_pi3.png}
+    \caption{Communication for USV sensor system, s=pi3, w=25, using Linear Regression}
     \label{fig:err_lin_reg_pi4}
 \end{figure}
 % talk about one-way anova results and tukey ttest on waiting time
 % place plot
-\begin{figure}[h]
+\begin{figure}[t!]
     \centering
     \includegraphics[scale=0.35]{imgs/lin_reg_pi3_waiting_plot_diff_means.png}
     \caption{Policy comparison on waiting time using using Linear Regression}
-    \label{fig:svr_rbf_R5_waiting_plot_diff_means}
+    \label{fig:lin_reg_pi3_waiting_plot_diff_means}
 \end{figure}
 % talk about one way anova results and tukey ttest on abs error rate
-\begin{figure}[h]
+\begin{figure}[t!]
     \centering
     \includegraphics[scale=0.35]{imgs/lin_reg_pi3_error_plot_diff_means.png}
     \caption{Policy comparison on absolute error rate time using Linear Regression}
-    \label{fig:svr_rbf_R5_waiting_plot_diff_means}
+    \label{fig:lin_reg_pi3_waiting_plot_diff_means}
 \end{figure}
 
 \subsection{Experimentation with Support Vector Regression models}
 
-After some analysis of the data it was found out that the initial 100 datapoints of the HT sensor dataset contains 
+After some analysis of the data it was found that the initial 100 datapoints of the HT sensor dataset contain a single drift in the observed pattern. However, the rest of the data used in the simulation of the online algorithm has no changes, which results in no communication between the edge node and the gateway. This called for placing an artificial change in the data. One gradual long term change and one abrupt short term change in the data affecting only the MOX sensor data and preserving the genuine datastream for the humidity and temperature. This is aimed to simulate a new pattern in the data which would cause a change in the communicated models.
+
+The gradual long term change occurs from iteration 50 of the start of the simulation, where the MOX sensor values are increased with 10\% of the mean value in the next 12 iterations and after that the change is kept persistent throughout the rest of the simulation. This change is intended to serve as a critical change \cite{lautay2018} which should be detected by the algorithm and acted upon as soon as possible.
+
+The second abrupt change occurs short term change occurs in iteration 108. The change in the MOX sensor values is increased with 2.5\% of the mean value and then decreased to the genuine data stream in the next 4 iterations. This change is intended to serve as a nuisance change \cite{lautay2018} which should be of least importance to the algorithm.
+
+%chosen B is 3 with highest mean waiting time
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.4]{imgs/boxplot_svr_waiting_R5.png}
+    \caption{Waiting time boxplot for $\Theta=1$ and $B$ values in the range 2 to 15}
+    \label{fig:boxplot_svr}
+\end{figure}
 
 % experiment set up for SVR
 % place plot of all policies abs error rate for SVR
-\begin{figure}[h]
-    \centering
-    \includegraphics[scale=0.33]{imgs/svr_rbf_R3_w25.png}
-    \caption{Absolute error difference for HT sensor system, s=R3, w=25,
-    using Support Vector Regression with RBF Kernel 
-    given an artificial change at 40th window iteration}
-    \label{fig:err_rbf_svr_R3}
-\end{figure}
-
 \begin{figure}[h]
     \centering
     \includegraphics[scale=0.33]{imgs/svr_rbf_R5_w25.png}
@@ -401,6 +426,14 @@ After some analysis of the data it was found out that the initial 100 datapoints
     given an artificial change at 40th window iteration}
     \label{fig:err_rbf_svr_R5}
 \end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.34]{imgs/comm_svr_rbf_R5.png}
+    \caption{Communication for HT sensor system, s=R5, w=25, using Support Vector Regression with RBF Kernel}
+    \label{fig:comm_rbf_svr_R5}
+\end{figure}
+
 % talk about one-way anova results and tukey ttest on waiting time
 % place plot
 \begin{figure}[h]
@@ -429,8 +462,6 @@ This is optional; it is a location for you to thank people
 
 \bibliographystyle{abbrv}
 \bibliography{example.bib}
-
-\pagebreak
 
 \begin{appendix}
 
