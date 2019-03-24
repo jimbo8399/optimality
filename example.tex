@@ -5,6 +5,7 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{amsmath}
+\usepackage[table,xcdraw]{xcolor}
 
 \begin{document}
 
@@ -42,6 +43,9 @@ The main problem which this project aims to resolve is formulating an optimal wa
 % $\bullet$ Once a new model is obtained the previous one is discarded, therefore, if the previous one has had higher accuracy, it is no longer available to be shared with the edge gateway.
 
 \textbf{RQ: How can waiting time and model accuracy at the edge gateway be maximised while minimising the communication to the gateway and computational complexity at the sensing node level?}
+
+\subsubsection*{Content organisation}
+The rest of the paper is organised as follows: Section 2 presents an initial survey introducing the reader to the current state of the research topic. Section 3 presents the methodology followed for this project including the rationale behind the proposed algorithm and the pseudocode for the optimal algorithm and every other used for comparison. Section 4 shows the experiment setup and the results from each simulation along with a summarised analysis. Section 5 includes the concluding remarks and ideas on future development of the project.
 
 \section{Background}
 \subsection*{Knowledge sharing in IoT environments}
@@ -119,8 +123,8 @@ The conditional expectation of the reward $V_{t+1}$ given filtration $\mathbb{F}
 
 \begin{align*}
     &\mathbb{E}[V_{t+1}|\mathbb{F}_{t}] = \mathbb{E}[V_{t+1}]\\
-    &(t + 1 + B) \cdot P(S_{t+1} \leq \Theta | \mathbb{F}_t) - B
-    %%%%%%%%%%%%%%%%%%%%%%%
+    &(t + 1 + B) \cdot P(S_{t+1} \leq \Theta | \mathbb{F}_t) - B\\
+    &.........\\
     &(t+1)\cdot P(S_{t+1} \leq \Theta | \mathbb{F}_{t}) - B\cdot (1 - P(S_{t+1} \leq \Theta | \mathbb{F}_{t}))= \\ 
     &(t+1)\cdot P(S_{t}+Z_{t+1} \leq \Theta | \mathbb{F}_{t}) - B\cdot (1 - P(S_{t}+Z_{t+1} \leq \Theta | \mathbb{F}_{t}))=\\
     &(t+1)\cdot P(Z_{t+1} \leq \Theta-S_{t} | \mathbb{F}_{t}) - B\cdot (1 - P(Z_{t+1} \leq \Theta-S_{t+1} | \mathbb{F}_{t}))=\\
@@ -350,18 +354,11 @@ Two time-series datasets will be used in order to apply the proposed approach an
 The experiment using linear regression models was performed using the initial 100 datapoints of the dataset for any pre-processing analysis depending on the targeted policy and the rest of the dataset was used to simulate an online approach to each of the 5 policies.
 
 %SHOULD I specify the used parameter values
-Three of the policies required some parameterisation which needs to be mentioned in advance.
-% $\bullet$ \emph{CuSum policy:}
-% $\bullet$ \emph{Random policy:}
-% $\bullet$ \emph{OP policy:}
-% $\bullet$ \emph{Median policy:}
+Three of the policies require parameterisation which needs to be mentioned in advance along with the global parameter on the window size, which is set to be 25 for all simulations.
+
 The Median policy was performed using an $\alpha$ fraction of the median of the first 100 datapoints, in this case $\alpha$ was set to 0.5.
 
 The CuSum policy relies on a threshold parameter $\Theta = 2$, up to which the cumulative sum of the logarithm ratio is allowed to increase.
-
-The OP policy requires two parameter values, one for the error sum threshold and one for the penalty value. The boxplot analysis was performed by specifying a threshold $\Theta$ for the OP policy and running the simulation with penalty values ranging from 2 to 15. 
-In \ref{fig:boxplot_linreg} for the USV sensor "pi3" it is shown that the highest mean on update delaying is achieved using a threshold $\Theta = 3$ and a penalty value $B=14$.
-These values are then used in the complete simulation of the policy comparison.
 
 \begin{figure}[h]
     \centering
@@ -369,6 +366,10 @@ These values are then used in the complete simulation of the policy comparison.
     \caption{Waiting time boxplot for $\Theta=3$ and $B$ values in the range 2 to 15}
     \label{fig:boxplot_linreg}
 \end{figure}
+
+The OP policy requires two parameter values, one for the error sum threshold and one for the penalty value. The boxplot analysis was performed by specifying a threshold $\Theta$ for the OP policy and running the simulation with penalty values ranging from 2 to 15. 
+In \ref{fig:boxplot_linreg} for the USV sensor "pi3" it is shown that the highest mean on update delaying is achieved using a threshold $\Theta = 3$ and a penalty value $B=14$.
+These values are then used in the complete simulation of the policy comparison and the absolute error rate and the communication rate for each policy are depicted in Figure \ref{fig:err_lin_reg_pi3} and Figure \ref{fig:comm_lin_reg_pi3} respectively.
 
 % place plot of all policies abs error rate for lin reg
 \begin{figure}[h]
@@ -382,18 +383,43 @@ These values are then used in the complete simulation of the policy comparison.
     \centering
     \includegraphics[scale=0.33]{imgs/comm_lin_reg_pi3.png}
     \caption{Communication for USV sensor system, s=pi3, w=25, using Linear Regression}
-    \label{fig:err_lin_reg_pi4}
+    \label{fig:comm_lin_reg_pi3}
 \end{figure}
+
+As can be seen from Figure \ref{fig:err_lin_reg_pi3}, the plot is very inconsistent due to the low accuracy of the linear regression models. The absolute error difference for the optimal policy preserves for six iterations a similar rate to policy A which is aimed at keeping the most accurate model. However, as seen in Figure \ref{fig:comm_lin_reg_pi3}, the optimal policy waits 6 iterations more compared to policy A before sensing an update.  
+
+The number of iterations between two model updates are referred to as waiting times and they are further investigated by performing an ANOVA test and a Tukey's HSD test for multiple mean differences. 
+%%% TODO: include the anova results
+\begin{table}[]
+\begin{tabular}{|l|l|l|}
+\hline
+\multicolumn{3}{|c|}{\cellcolor[HTML]{DAE8FC}\textbf{ANOVA test results}}       \\ \hline
+\multicolumn{3}{|l|}{\cellcolor[HTML]{FFFFFF}\textbf{p-value for waiting time}} \\ \hline
+pi3    & 1.2483606116074772e-30   & \textless{}= 0.05                           \\ \hline
+pi4    & 7.892553014202059e-14    & \textless{}= 0.05                           \\ \hline
+\multicolumn{3}{|l|}{\cellcolor[HTML]{FFFFFF}\textbf{p-value for abs error}}    \\ \hline
+pi3    & 1.2436387993444255e-13   & \textless{}= 0.05                           \\ \hline
+pi4    & 2.7228117694830134e-17   & \cellcolor[HTML]{FFFFFF}\textless{}= 0.05   \\ \hline
+\end{tabular}
+\end{table}
+
+The results show p-values less than 5\% which point to a statistically significant difference between the policy means for sensors "pi3" and "pi4" and their waiting times and absolute error rates. We perform a follow-up Tukey HSD test, which compares the means for each couple of policies and the results are plotted in Figure \ref{fig:lin_reg_pi3_waiting_plot_diff_means}.
+
+The plot shows that optimal policy has a statistically significant higher waiting time compared to policyM, policyC and policyA and the same mean with the Random policy as intended.
+This shows the advantage in communication reduction introduced by the optimal policy.
+Moreover, we perform the Tukey's HSD test on the absolute error difference of each policy obtained during the simulation along with policy E. PolicyE communicates the up-to-date models on each iteration and is intended as a margin which show the absolute error rate of the models at its lowest. 
+
+The results show that the accuracy of the models does not suffer a significant deterioration compared to policy E and the other communication reduction policies but preserves the highest postponing time. Moreover, the plot shows that randomly updating the models leads to a significant increase in the absolute error, therefore, the optimal policy does not just correctly guess the optimal number of updates but also the optimal time to postpone the update. 
 % talk about one-way anova results and tukey ttest on waiting time
 % place plot
-\begin{figure}[t!]
+\begin{figure}[h]
     \centering
     \includegraphics[scale=0.35]{imgs/lin_reg_pi3_waiting_plot_diff_means.png}
     \caption{Policy comparison on waiting time using using Linear Regression}
     \label{fig:lin_reg_pi3_waiting_plot_diff_means}
 \end{figure}
 % talk about one way anova results and tukey ttest on abs error rate
-\begin{figure}[t!]
+\begin{figure}[h]
     \centering
     \includegraphics[scale=0.35]{imgs/lin_reg_pi3_error_plot_diff_means.png}
     \caption{Policy comparison on absolute error rate time using Linear Regression}
@@ -402,11 +428,13 @@ These values are then used in the complete simulation of the policy comparison.
 
 \subsection{Experimentation with Support Vector Regression models}
 
-After some analysis of the data it was found that the initial 100 datapoints of the HT sensor dataset contain a single drift in the observed pattern. However, the rest of the data used in the simulation of the online algorithm has no changes, which results in no communication between the edge node and the gateway. This called for placing an artificial change in the data. One gradual long term change and one abrupt short term change in the data affecting only the MOX sensor data and preserving the genuine datastream for the humidity and temperature. This is aimed to simulate a new pattern in the data which would cause a change in the communicated models.
+After some analysis of the data it was found that the initial 100 datapoints of the HT sensor dataset contain a single drift in the observed pattern. However, the rest of the data used in the simulation of the online algorithm has no noticeable changes, which results in no communication between the edge node and the gateway. This called for placing an artificial change in the data. One gradual long term change and one abrupt short term change affecting only the MOX sensor data and preserving the genuine datastream for the humidity and temperature. This is aimed to simulate a new pattern in the data which will cause a change in the communicated models.
 
-The gradual long term change occurs from iteration 50 of the start of the simulation, where the MOX sensor values are increased with 10\% of the mean value in the next 12 iterations and after that the change is kept persistent throughout the rest of the simulation. This change is intended to serve as a critical change \cite{lautay2018} which should be detected by the algorithm and acted upon as soon as possible.
+The gradual long term change occurs from iteration 50 of the start of the simulation, where the MOX sensor values are increased with 10\% of the mean value in the next 12 iterations and after that the change is kept persistent throughout the rest of the simulation. This drift in the data is intended to serve as a critical change \cite{lautay2018} which should be detected by the algorithm and acted upon as soon as possible.
 
-The second abrupt change occurs short term change occurs in iteration 108. The change in the MOX sensor values is increased with 2.5\% of the mean value and then decreased to the genuine data stream in the next 4 iterations. This change is intended to serve as a nuisance change \cite{lautay2018} which should be of least importance to the algorithm.
+The second abrupt short term change occurs in iteration 108. The change in the MOX sensor values is increased with 2.5\% of the mean value and then decreased to the genuine data stream in the next 4 iterations. This drift in the data is intended to serve as a nuisance change \cite{lautay2018} which should be of least importance to the algorithm.
+
+The global parameters for this experiment are set the same way as in the experimentation using the linear regression models, window size 25 and initial preprocessing data containing 100 datapoints. The Median policy uses the $\alpha$ with a set value of 0.5
 
 %chosen B is 3 with highest mean waiting time
 \begin{figure}[h]
@@ -435,6 +463,20 @@ The second abrupt change occurs short term change occurs in iteration 108. The c
 \end{figure}
 
 % talk about one-way anova results and tukey ttest on waiting time
+
+\begin{table}[]
+\begin{tabular}{|l|l|l|}
+\hline
+\multicolumn{3}{|c|}{\cellcolor[HTML]{DAE8FC}\textbf{ANOVA test results}}       \\ \hline
+\multicolumn{3}{|l|}{\cellcolor[HTML]{FFFFFF}\textbf{p-value for waiting time}} \\ \hline
+R3    & 9.198283524237108e-18     & \textless{}= 0.05                           \\ \hline
+R5    & 1.4772473722529788e-32    & \textless{}= 0.05                           \\ \hline
+\multicolumn{3}{|l|}{\cellcolor[HTML]{FFFFFF}\textbf{p-value for abs error}}    \\ \hline
+R3    & 6.003242592652264e-23     & \textless{}= 0.05                           \\ \hline
+R5    & 1.0617164482428442e-11    & \cellcolor[HTML]{FFFFFF}\textless{}= 0.05   \\ \hline
+\end{tabular}
+\end{table}
+
 % place plot
 \begin{figure}[h]
     \centering
