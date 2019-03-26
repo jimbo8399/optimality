@@ -20,14 +20,14 @@ This paper explores a sequential decision making methodology of \textit{when to 
 \end{abstract}
 
 \section{Introduction}
-The Internet of Thing (IoT) environments have been gaining popularity since the end of the 20th century. They have allowed the transformation of small computing environments into large scale ecosystems, whose cores (cloud data centers) require a massive computational 
+The Internet of Things (IoT) environments have been gaining popularity since the end of the 20th century. They have allowed the transformation of small computing environments into large scale ecosystems, whose cores (cloud data centers) require a massive computational 
 power to process all the received contextual data along with a substantial network overhead in order to receive all the raw data.
 
 However, as this has proven to be inefficient, a computing paradigm has been provided in the form of Edge Computing (EC), whose rationale is to \textit{push most of the computations to the edge of the network}, e.g. sensors, mobile devices, etc. This allows to take advantage of the computational and sensing capabilities of modern devices and deliver the locally processed contextual data to the cloud in the form of partially or entirely extracted knowledge \cite{anagnostop2014}.
 The edge-centric rationale also contributes as a security measure as raw data is processed locally on the sensing device and as a method for decreasing network traffic, as the delivered statistical learning model representations of the data have significantly smaller size compared to the raw contextual sensed data. The EC methodology is expected to significantly reduce the required computational power. However, if the acquired knowledge is still transferred to the Cloud on each iteration, then the considerable communication overhead remains along with other complications explained further ahead in this paper. 
 
 \subsection*{Problem Statement}
-The main problem which this work aims is estimating an \textit{optimal waiting time criteria} based on made sequential observations on multivariate contextual data. The proposed scheme should be able to decide when a model representation of the sensed data is to be sent from an edge node to an edge gateway in order to minimise the communication overhead and, in parallel, to preserve or increase the accuracy of the generated statistical models. This can be expressed as the following research question:
+The main problem which this work aims is to estimate an \textit{optimal waiting time criteria} based on made sequential observations on multivariate contextual data. The proposed scheme should be able to decide when a model representation of the sensed data is to be sent from an edge node to an edge gateway in order to minimise the communication overhead and, in parallel, to preserve or increase the accuracy of the generated statistical models. This can be expressed as the following research question:
 
 % The formulation of the Model Update problem is as follows:\\
 % $\bullet$ A hardware structure is given as follows a sensing node transmitting data to the gateway.\\
@@ -111,9 +111,8 @@ The Optimal Postponing (OP) policy for ML model update is based on the change in
     S_t &= S_{t-1} + Z_t\label{eq:1}
 \end{align}
 
-A error tolerance threshold $\Theta > 0$ is defined to determine the acceptable error sum, which will be used to determine if the 
-edge node should proceed with a ML model update to the edge gateway or not. Under this context, we define the following random variable $V_{t}$ as the reward of a ML model update decision:
-
+An error tolerance threshold $\Theta > 0$ is defined to determine the acceptable error sum, which will be used to determine if the 
+edge node should proceed with a ML model update to the edge gateway or not. Under this context, we define the following random variable $V_{t}$ as the reward of an update decision:
 \begin{equation}\label{reward}
     V_t = \Bigg\{ \begin{tabular}{c}
                   $t,\ \text{if}\ S_t \leq \Theta$, \\
@@ -121,7 +120,7 @@ edge node should proceed with a ML model update to the edge gateway or not. Unde
                   \end{tabular}
 \end{equation}
 
-The penalty factor $B> 0$ denotes that the current cumulative error exceed the error tolerance $\Theta$, thus, the edge node could have sent the updated ML model to the edge gateway. On the other hand, to be communication efficient, the edge node desires to postpone the ML model update, thus, increasing the value of $V_{t}$. However, as long as the edge node delays the model update, then the cumulative error $S_{t}$ approaches $\Theta$. The problem is for the cumulative error $S_{t}$ to reach as close to the tolerance $\Theta$ as possible, but without exceeding this. Hence, we then formalise the OST problem as follows:
+The penalty factor $B> 0$ denotes that the current cumulative error exceed the error tolerance $\Theta$, thus, the edge node could have sent the updated ML model to the edge gateway. On the other hand, to be communication efficient, the edge node desires to postpone the ML model update, thus, increasing the value of $V_{t}$. However, as long as the edge node delays the model update, then the cumulative error $S_{t}$ approaches $\Theta$. The problem is for the cumulative error $S_{t}$ to reach as close to the tolerance $\Theta$ as possible, but without exceeding this. Hence, we then formalise the OST problem:
 
 \textbf{Problem 1} The edge node should find the best time instance $t^{*}$ such that the expected reward for delaying a ML model update is maximized, i.e., the optimal stopping time $t^{*}$ obtains the following essential supremum
 \[
@@ -159,21 +158,7 @@ Then, the conditional expectation of the reward $V_{t+1}$ given filtration $\mat
 
 \begin{eqnarray}
     \mathbb{E}[V_{t+1}|\mathbb{F}_{t}] & = & (t + 1 + B) \cdot P(S_{t+1} \leq \Theta | \mathbb{F}_t) - B
-    % &=(t + 1 + B) \cdot P(S_{t}+Z_{t+1} \leq \Theta | \mathbb{F}_{t}) - B\\
-    % &=(t + 1 + B) \cdot P(Z_{t+1} \leq \Theta-S_{t+1} | \mathbb{F}_{t}) - B\\
-    % &=(t + 1 + B) \cdot F_{Z}(\Theta-S_{t}) - B\\
-    % &.........\\
-    % &(t+1) P(S_{t+1} \leq \Theta | \mathbb{F}_{t}) - B (1 - P(S_{t+1} \leq \Theta | \mathbb{F}_{t}))= \\ 
-    % &(t+1) P(S_{t}+Z_{t+1} \leq \Theta | \mathbb{F}_{t}) - B (1 - P(S_{t}+Z_{t+1} \leq \Theta | \mathbb{F}_{t}))=\\
-    % &(t+1) P(Z_{t+1} \leq \Theta-S_{t} | \mathbb{F}_{t}) - B (1 - P(Z_{t+1} \leq \Theta-S_{t+1} | \mathbb{F}_{t}))=\\
-    % &(t+1) F_{Z}(\Theta-S_{t}) - B (1 - F_{Z}(\Theta-S_{t}))
 \end{eqnarray}
-
-% Since we aim to not exceed the specified threshold $\Theta$, then the result of the reward function has to always be a positive value $E[V_t] > 0$. From this we can derive the probability of the absolute error sum not exceeding the threshold.
-% \begin{multline}
-%     E[V_t] = (t + B) \cdot P(S_t \leq \Theta) - B > 0\\
-%     =>  P(S_t \leq \Theta) > \frac{B}{t+B}
-% \end{multline}
 
 However, it is known from Eq.(\ref{eq:1}) that:
 \begin{equation}
@@ -203,17 +188,18 @@ We aim to postpone sending the ML model if we know that the next iteration will 
 which completes the proof of Theorem 1. 
 \qed
 
-The Algorithm \ref{polOP} illustrates the local process in the edge node. 
+Algorithm \ref{polOP} illustrates the local process in the edge node. 
 
 \begin{algorithm}
 \caption{Time-optimized Policy (OP)}\label{polOP}
 \begin{algorithmic}
 \State $rewardDist \gets$ obtainRewardDist() \Comment{Apendix \ref{rewarddist}}
-\State $X_0, y_0 \gets$ fromDataStream
+\State $X_0, y_0\gets$ fromDataStream
 \State $X_1, y_1 \gets$ fromDataStream
+\State $initModel \gets$ fit($X_0, y_0$)
 \State $model \gets$ fit($X_1, y_1$)
-\State $mse \gets$ calcError($model,X_0,y_0$)
-\State $msePrime \gets$ calcError($newModel,X_1,y_1$)
+\State $mse \gets$ calcError($initModel,X_1,y_1$)
+\State $msePrime \gets$ calcError($model,X_1,y_1$)
 \State $absError \gets \mid mse - msePrime \mid$
 \State $absErrorSum \gets absError$
 \While{$True$}
@@ -226,6 +212,8 @@ The Algorithm \ref{polOP} illustrates the local process in the edge node.
         \State $model \gets newModel$ \Comment{communicate model}
         \State $absErrorSum \gets absError$
         \State $t \gets 0$
+    \Else
+        \State $absErrorSum \gets absErrorSum + absError$
     \EndIf
     \State $t \gets t + 1$
 \EndWhile
@@ -310,7 +298,9 @@ The policy aims to present a naive algorithm for reducing communication but pres
 \While{$True$}
     \State $X, y \gets$ fromDataStream
     \State $newModel \gets$ fit($X,y$)
-    \If{$error > errorprime $}
+    \State $mse \gets$ calcError($model, X, y$)
+    \State $msePrime \gets$ calcError($newModel, X, y$)
+    \If{$mse > msePrime $}
         \State $model \gets newModel$ \Comment{communicate model}
     \EndIf
 \EndWhile
@@ -343,15 +333,16 @@ When a new absolute error difference is calculated it is then fitted in the prob
 \State $goodDist \gets$ obtainGoodDist() \Comment{Apendix \ref{gooddist}}
 \State $X_0, y_0 \gets$ fromDataStream
 \State $X_1, y_1 \gets$ fromDataStream
+\State $initModel \gets$ fit($X_0, y_0$)
 \State $model \gets$ fit($X_1, y_1$)
-\State $mse \gets$ calcError($model,X_0,y_0$)
-\State $msePrime \gets$ calcError($newModel,X_1,y_1$)
+\State $mse \gets$ calcError($model,X_1,y_1$)
+\State $msePrime \gets$ calcError($initModel,X_1,y_1$)
 \State $absError \gets \mid mse - msePrime \mid$
 \State $goodProb \gets$ pdf($goodDist,absError$)
 \State $badProb \gets$ pdf($badDist,absError$)
 \State $logRatio \gets \log(badProb/goodProb)$
 \State $logRatioSum \gets logRatio$
-\State $logVector \gets [logRatioSum]$)
+\State $logVector \gets [logRatioSum]$
 \While{$True$}
     \State $X, y \gets$ fromDataStream
     \State $newModel \gets$ fit($X,y$)
@@ -362,7 +353,7 @@ When a new absolute error difference is calculated it is then fitted in the prob
     \State $badProb \gets$ pdf($badDist, absError$)
     \State $logRatio \gets \log(badProb/goodProb)$
     \State $logRatioSum \gets logRatioSum + logRatio$
-    \State $decisionValue \gets logRatio - $ min($logVector$)
+    \State $decisionValue \gets logRatioSum - $ min($logVector$)
     \State $logVector$.append($logRatioSum$)
 
     \If{$decisionValue > \Theta$}
@@ -373,7 +364,7 @@ When a new absolute error difference is calculated it is then fitted in the prob
 \EndWhile
 \end{algorithmic}
 \end{algorithm}
-\newpage
+
 \section{Performance Evaluation}
 \subsection{Data sets}
 Two time-series datasets will be used in order to apply the proposed approach and perform the previously discussed experiments.
@@ -566,6 +557,59 @@ This paper presented and evaluated a decision technique for optimal model update
 
 \begin{appendix}
 
+\section{CUSUM policy}\label{baddist}
+\begin{algorithm}[h]
+\caption{Function to Obtain Bad Distribution}
+\begin{algorithmic}
+\Function{obtainBadDist}{}
+    \State $X, y \gets$ fromDataStream
+    \State $model \gets$ fit($X,y$)
+    \For{$i = 0$ \textbf{to} $100$}
+        \State $X, y \gets$ fromDataStream
+        \State $newModel \gets$ fit($X,y$)
+        \State $mse \gets$ calcError($model,X,y$)
+        \State $msePrime \gets$ calcError($newModel,X,y$)
+        \State $absMse \gets \mid error - msePrime \mid$
+        \State $absoluteMseVector$.append($absMse$)
+    \EndFor
+    \State $mean \gets$ calcMean($absoluteMseVector$)
+    \State $variance \gets$ calcVar($absoluteMseVector$)
+    \State $shapeBad \gets mean^2/variance$
+    \State $scaleBad \gets variance/mean$
+    \State $badDist \gets$ Gamma($shapeBad, scaleBad$)\\
+    \Return $badDist$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\newpage
+
+\section{CUSUM policy}\label{gooddist}
+\begin{algorithm}[h]
+\caption{Function to Obtain Good Distribution}
+\begin{algorithmic}
+\Function{obtainGoodDist}{}
+    \State $X, y \gets$ fromDataStream
+    \State $model \gets$ fit($X,y$)
+    \For{$i = 0$ \textbf{to} $100$}
+        \State $X, y \gets$ fromDataStream
+        \State $newModel \gets$ fit($X,y$)
+        \State $mse \gets$ calcError($model,X,y$)
+        \State $msePrime \gets$ calcError($newModel,X,y$)
+        \State $absMse \gets \mid error - msePrime \mid$
+        \State $absoluteMseVector$.append($absMse$)
+        \State $model \gets newModel$
+    \EndFor
+    \State $mean \gets$ calcMean($absoluteMseVector$)
+    \State $variance \gets$ calcVar($absoluteMseVector$)
+    \State $shapeGood \gets mean^2/variance$
+    \State $scaleGood \gets variance/mean$
+    \State $goodDist \gets$ Gamma($shapeGood, scaleGood$)\\
+    \Return $goodDist$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
 \section{Optimal Postponing Policy}\label{rewarddist}
 \begin{algorithm}[h]
 \caption{Obtain Reward Distribution}
@@ -600,55 +644,6 @@ This paper presented and evaluated a decision technique for optimal model update
 \end{algorithmic}
 \end{algorithm}
 
-\section{CUSUM policy}\label{baddist}
-\begin{algorithm}[h]
-\caption{Function to Obtain Bad Distribution}
-\begin{algorithmic}
-\Function{obtainBadDist}{}
-    \State $X, y \gets$ fromDataStream
-    \State $model \gets$ fit($X,y$)
-    \For{$i = 0$ \textbf{to} $100$}
-        \State $X, y \gets$ fromDataStream
-        \State $newModel \gets$ fit($X,y$)
-        \State $mse \gets$ calcError($model,X,y$)
-        \State $msePrime \gets$ calcError($newModel,X,y$)
-        \State $allBad \gets \mid error - msePrime \mid$
-    \EndFor
-    \State $mean \gets$ calcMean($allBad$)
-    \State $variance \gets$ calcVar($allBad$)
-    \State $shapeBad \gets mean^2/variance$
-    \State $scaleBad \gets variance/mean$
-    \State $badDist \gets$ Gamma($shapeBad, scaleBad$)\\
-    \Return $badDist$
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-
-\section{CUSUM policy}\label{gooddist}
-\begin{algorithm}[h]
-\caption{Function to Obtain Good Distribution}
-\begin{algorithmic}
-\Function{obtainGoodDist}{}
-    \State $X, y \gets$ fromDataStream
-    \State $model \gets$ fit($X,y$)
-    \For{$i = 0$ \textbf{to} $100$}
-        \State $X, y \gets$ fromDataStream
-        \State $newModel \gets$ fit($X,y$)
-        \State $mse \gets$ calcError($model,X,y$)
-        \State $msePrime \gets$ calcError($newModel,X,y$)
-        \State $absMse \gets \mid error - msePrime \mid$
-        \State $model \gets newModel$
-    \EndFor
-    \State $mean \gets$ calcMean($absMse$)
-    \State $variance \gets$ calcVar($absMse$)
-    \State $shapeGood \gets mean^2/variance$
-    \State $scaleGood \gets variance/mean$
-    \State $goodDist \gets$ Gamma($shapeGood, scaleGood$)\\
-    \Return $goodDist$
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-\pagebreak
 \end{appendix}
 
 
