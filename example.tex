@@ -29,14 +29,6 @@ The edge-centric rationale also contributes as a security measure as raw data is
 \subsection*{Problem Statement}
 The main problem which this work aims is to estimate an \textit{optimal waiting time criteria} based on made sequential observations on multivariate contextual data. The proposed scheme should be able to decide when a model representation of the sensed data is to be sent from an edge node to an edge gateway in order to minimise the communication overhead and, in parallel, to preserve or increase the accuracy of the generated statistical models. This can be expressed as the following research question:
 
-% The formulation of the Model Update problem is as follows:\\
-% $\bullet$ A hardware structure is given as follows a sensing node transmitting data to the gateway.\\
-% $\bullet$ At each time $t=0,1,2,3,...$ a model is generated using a constant sliding window of size $w$ (contains multivariate contextual observations $X_{k},X_{k+1},...,X_{k+w}$).\\
-% $\bullet$ For each model we can obtain the Mean Squared Error (MSE) value based on the fitted data currently available at time $t$ in the edge node.\\
-% $\bullet$ At $t=0$, a model is generated over the first $w$ datapoints ($X_{0},X_{1},...,X_{w}$) and sent from the edge node to the edge gate.\\
-% $\bullet$ If $t=\infty$, it would mean that stopping has not occurred and a model update is never sent to the edge gateway.\\
-% $\bullet$ Once a new model is obtained the previous one is discarded, therefore, if the previous one has had higher accuracy, it is no longer available to be shared with the edge gateway.
-
 \textbf{How can the delivery waiting time and model accuracy at the edge gateway be maximised while minimising the communication overhead and computational complexity at the sensing edge node level?}
 
 \subsection*{Paper Organisation}
@@ -91,7 +83,7 @@ The contributions of this paper are as follows:
 
 \section{Methodology}
 The main focus of this work is to present and experiment with the
-proposed \textit{time-optimized model update postponing} policy/algorithm for reducing the communication rate but preserving the quality of the context. We assume that the distributed/EC environment contains at least sensor node and an edge gateway device. 
+proposed \textit{time-optimised model update postponing} policy/algorithm for reducing the communication rate but preserving the quality of the context. We assume that the distributed/EC environment contains at least sensor node and an edge gateway device. 
 
 Initially, the sensing node is responsible for gathering environmental / multivariate contextual data and generating a statistical/Machine Learning (ML) model from the first \textbf{\emph{w}} contextual data observations. The ML model is then temporarily stored on the sensing device but also is communicated with the edge gateway. 
 On each next observation, the piece of data is received and appended to the currently stored sensor data set of size \textbf{\emph{w}}, while the datum with the oldest timestamp is discarded. 
@@ -190,36 +182,63 @@ which completes the proof of Theorem 1.
 
 Algorithm \ref{polOP} illustrates the local process in the edge node. 
 
+% \begin{algorithm}
+% \caption{Time-optimised Policy (OP)}\label{polOP}
+% \begin{algorithmic}
+% \State $rewardDist \gets$ obtainRewardDist() \Comment{Apendix \ref{rewarddist}}
+% \State $X_0, y_0\gets$ fromDataStream
+% \State $X_1, y_1 \gets$ fromDataStream
+% \State $initModel \gets$ fit($X_0, y_0$)
+% \State $model \gets$ fit($X_1, y_1$)
+% \State $mse \gets$ calcError($initModel,X_1,y_1$)
+% \State $msePrime \gets$ calcError($model,X_1,y_1$)
+% \State $absError \gets \mid mse - msePrime \mid$
+% \State $absErrorSum \gets absError$
+% \While{$True$}
+%     \State $X, y \gets$ fromDataStream
+%     \State $newModel \gets$ fit($X,y$)
+%     \State $mse \gets$ calcError($model,X,y$)
+%     \State $msePrime \gets$ calcError($newModel,X,y$)
+%     \State $absError \gets \mid mse - msePrime \mid$
+%     \If{cdf($rewardDist, (\Theta-absErrorSum$)) $\leq$\\\hspace{4.4cm} $(t+B)/(t+1+B)$}
+%         \State $model \gets newModel$ \Comment{communicate model}
+%         \State $absErrorSum \gets absError$
+%         \State $t \gets 0$
+%     \Else
+%         \State $absErrorSum \gets absErrorSum + absError$
+%     \EndIf
+%     \State $t \gets t + 1$
+% \EndWhile
+% \end{algorithmic}
+% \end{algorithm}
+
 \begin{algorithm}
-\caption{Time-optimized Policy (OP)}\label{polOP}
+\caption{Time-optimised Policy (OP)}\label{polOP}
 \begin{algorithmic}
-\State $rewardDist \gets$ obtainRewardDist() \Comment{Apendix \ref{rewarddist}}
-\State $X_0, y_0\gets$ fromDataStream
-\State $X_1, y_1 \gets$ fromDataStream
-\State $initModel \gets$ fit($X_0, y_0$)
-\State $model \gets$ fit($X_1, y_1$)
-\State $mse \gets$ calcError($initModel,X_1,y_1$)
-\State $msePrime \gets$ calcError($model,X_1,y_1$)
-\State $absError \gets \mid mse - msePrime \mid$
-\State $absErrorSum \gets absError$
-\While{$True$}
-    \State $X, y \gets$ fromDataStream
-    \State $newModel \gets$ fit($X,y$)
-    \State $mse \gets$ calcError($model,X,y$)
-    \State $msePrime \gets$ calcError($newModel,X,y$)
-    \State $absError \gets \mid mse - msePrime \mid$
-    \If{cdf($rewardDist, (\Theta-absErrorSum$)) $\leq$\\\hspace{4.4cm} $(t+B)/(t+1+B)$}
-        \State $model \gets newModel$ \Comment{communicate model}
-        \State $absErrorSum \gets absError$
-        \State $t \gets 0$
+\State $rewardDist \gets$ obtainRewardDist() \Comment{Appendix \ref{rewarddist}}
+\State \textbf{receive}($X_0, y_0, X_1, y_1$)
+\State $initModel \gets$ \textbf{fit}($X_0, y_0$)
+\State $model \gets$ \textbf{fit}($X_1, y_1$)
+\State $e \gets$ \textbf{error}($initModel,X_1,y_1$)
+\State $e' \gets$ \textbf{error}($model,X_1,y_1$)
+\State $Z \gets \mid e - e' \mid$
+\State $S \gets Z$; $t \gets 1$
+\While{$true$}
+    \State \textbf{receive}($X, y$)
+    \State $newModel \gets$ \textbf{fit}($X,y$)
+    \State $e \gets$ \textbf{error}($model,X,y$)
+    \State $e' \gets$ \textbf{error}($newModel,X,y$)
+    \State $Z \gets \mid e - e' \mid$
+    \If{\textbf{cdf}($rewardDist, (\Theta-S$)) $\leq \frac{t+B}{t+1+B}$}
+        \State $model \gets newModel$ \Comment{update \& communicate model}
+        \State $S \gets Z$; $t \gets 1$
     \Else
-        \State $absErrorSum \gets absErrorSum + absError$
+        \State $S \gets S + Z$; $t \gets t + 1$
     \EndIf
-    \State $t \gets t + 1$
 \EndWhile
 \end{algorithmic}
 \end{algorithm}
-
+\newpage
 \subsection{Policies under Comparison}
 In order to evaluate the performance of the presented algorithm 4 other policies are implemented, which rely either on certain statistics of the data or on pure randomness: the Median-based Policy, the Random Policy, the Accuracy Policy, and the optimal CuSum Policy \cite{cusum_pierre}.
 
@@ -231,33 +250,66 @@ Using a fraction $\alpha$ of the median value the policy determines whether the 
 
 This policy is expected to reduce communication by being more tolerant towards initial small abrupt changes but detects continuously increasing values.
 
+% \begin{algorithm}[h!]
+% \caption{Median-based Policy}\label{polM}
+% \begin{algorithmic}
+% \Procedure{obtainMedian}{}
+%     \State $X, y \gets$ fromDataStream
+%     \State $model \gets$ fit($X,y$)
+    
+%     \For{$i = 0$ \textbf{to} $100$}
+%         \State $X, y \gets$ fromDataStream
+%         \State $newModel \gets$ fit($X,y$)
+%         \State $mse \gets$ calcError($model,X,y$)
+%         \State $msePrime \gets$ calcError($newModel,X,y$)
+%         \State $all \gets \mid error - msePrime \mid$
+%     \EndFor
+%     \State $median \gets$ calcMedian($all$)
+% \EndProcedure
+
+% \State $X, y \gets$ fromDataStream
+% \State $model \gets$ fit($X,y$)
+% \While{$True$}
+%     \State $X, y \gets$ fromDataStream
+%     \State $newModel \gets$ fit($X,y$)
+%     \If{$\mid error - msePrime \mid > \alpha \cdot median$}
+%         \State $model \gets newModel$ \Comment{communicate model}
+%     \EndIf
+%     \If{$iteration \mod 100 = 0$}
+%         \State updateMedian()
+%     \EndIf
+% \EndWhile
+% \end{algorithmic}
+% \end{algorithm}
+
 \begin{algorithm}[h!]
 \caption{Median-based Policy}\label{polM}
 \begin{algorithmic}
 \Procedure{obtainMedian}{}
-    \State $X, y \gets$ fromDataStream
-    \State $model \gets$ fit($X,y$)
+    \State \textbf{receive}($X, y$)
+    \State $model \gets$ \textbf{fit}($X,y$)
     
-    \For{$i = 0$ \textbf{to} $100$}
-        \State $X, y \gets$ fromDataStream
-        \State $newModel \gets$ fit($X,y$)
-        \State $mse \gets$ calcError($model,X,y$)
-        \State $msePrime \gets$ calcError($newModel,X,y$)
-        \State $all \gets \mid error - msePrime \mid$
+    \For{$t \gets 1$ \textbf{to} $T$}
+        \State \textbf{receive}($X, y$)
+        \State $newModel \gets$ \textbf{fit}($X,y$)
+        \State $e \gets$ \textbf{error}($model,X,y$)
+        \State $e' \gets$ \textbf{error}($newModel,X,y$)
+        \State $E \gets E \cup \{\mid e - e' \mid\}$
     \EndFor
-    \State $median \gets$ calcMedian($all$)
+    \State $median \gets$ \textbf{median}($E$)
 \EndProcedure
-
-\State $X, y \gets$ fromDataStream
-\State $model \gets$ fit($X,y$)
-\While{$True$}
-    \State $X, y \gets$ fromDataStream
-    \State $newModel \gets$ fit($X,y$)
-    \If{$\mid error - msePrime \mid > \alpha \cdot median$}
-        \State $model \gets newModel$ \Comment{communicate model}
+\State \textbf{receive}($X, y$)
+\State $model \gets$ \textbf{fit}($X,y$)
+\While{$true$}
+    \State \textbf{receive}($X, y$)
+    \State $newModel \gets$ \textbf{fit}($X,y$)
+    \State $e \gets$ \textbf{error}($model,X,y$)
+    \State $e' \gets$ \textbf{error}($newModel,X,y$)
+    \If{$\mid e - e' \mid > \alpha \cdot median$}
+        \State $model \gets newModel$ \Comment{update \& communicate model}
     \EndIf
-    \If{$iteration \mod 100 = 0$}
-        \State updateMedian()
+    \If{$t \mod T = 0$}
+        \State \textbf{updateMedian}()
     \EndIf
 \EndWhile
 \end{algorithmic}
@@ -271,37 +323,71 @@ The aim of the policy is to show that even if the number of updates is approxima
 \begin{algorithm}[h]
 \caption{Random-based Policy}\label{polR}
 \begin{algorithmic}
-\State $X,y \gets$ fromDataStream
-\State $model \gets$ fit($X,y$)
+\State  \textbf{receive}($X,y$)
+\State $model \gets$ \textbf{fit}($X,y$)
 
-\While{$True$}
-    \State $X, y \gets$ fromDataStream
-    \State $newModel \gets$ fit($X,y$)
-    \State $rand \gets$ genZeroOrOne($probability$)
+\While{$true$}
+    \State \textbf{receive}($X, y$)
+    \State $newModel \gets$ \textbf{fit}($X,y$)
+    \State $rand \gets$ \textbf{generate}($\{0,1\},probability$)
     \If{$rand = 1$}
-        \State $model \gets newModel$ \Comment{communicate model}
+        \State $model \gets newModel$ \Comment{update \& communicate model}
     \EndIf
 \EndWhile
 \end{algorithmic}
 \end{algorithm}
-\vfill
+
+% \begin{algorithm}[h]
+% \caption{Random-based Policy}\label{polR}
+% \begin{algorithmic}
+% \State $X,y \gets$ fromDataStream
+% \State $model \gets$ fit($X,y$)
+
+% \While{$True$}
+%     \State $X, y \gets$ fromDataStream
+%     \State $newModel \gets$ fit($X,y$)
+%     \State $rand \gets$ genZeroOrOne($probability$)
+%     \If{$rand = 1$}
+%         \State $model \gets newModel$ \Comment{communicate model}
+%     \EndIf
+% \EndWhile
+% \end{algorithmic}
+% \end{algorithm}
+
 \subsubsection{Accuracy-based Policy}
 The accuracy policy works by comparing the MSE of the old model and the most up-to-date model. Once it detects a decrease in the accuracy the latest model is sent to the edge gateway.
 The policy aims to present a naive algorithm for reducing communication but preserving accuracy as high as possible.
 
+% \begin{algorithm}[h]
+% \caption{Accuracy-based Policy}\label{polA}
+% \begin{algorithmic}
+% \State $X, y \gets$ fromDataStream
+% \State $model \gets$ fit($X,y$)
+
+% \While{$True$}
+%     \State $X, y \gets$ fromDataStream
+%     \State $newModel \gets$ fit($X,y$)
+%     \State $mse \gets$ calcError($model, X, y$)
+%     \State $msePrime \gets$ calcError($newModel, X, y$)
+%     \If{$mse > msePrime $}
+%         \State $model \gets newModel$ \Comment{communicate model}
+%     \EndIf
+% \EndWhile
+% \end{algorithmic}
+% \end{algorithm}
+
 \begin{algorithm}[h]
 \caption{Accuracy-based Policy}\label{polA}
 \begin{algorithmic}
-\State $X, y \gets$ fromDataStream
-\State $model \gets$ fit($X,y$)
-
-\While{$True$}
-    \State $X, y \gets$ fromDataStream
-    \State $newModel \gets$ fit($X,y$)
-    \State $mse \gets$ calcError($model, X, y$)
-    \State $msePrime \gets$ calcError($newModel, X, y$)
-    \If{$mse > msePrime $}
-        \State $model \gets newModel$ \Comment{communicate model}
+\State  \textbf{receive}($X, y$)
+\State $model \gets$ \textbf{fit}($X,y$)
+\While{$true$}
+    \State \textbf{receive}($X, y$)
+    \State $newModel \gets$ \textbf{fit}($X,y$)
+    \State $e \gets$ \textbf{error}($model, X, y$)
+    \State $e' \gets$ \textbf{error}($newModel, X, y$)
+    \If{$e > e' $}
+        \State $model \gets newModel$ \Comment{update \& communicate model}
     \EndIf
 \EndWhile
 \end{algorithmic}
@@ -324,47 +410,85 @@ The assumption is made that the absolute error differences $Z_0, Z_1, \dotsc , Z
 
 When a new absolute error difference is calculated it is then fitted in the probability density function for each of the two distributions. The logarithmic ratio of the probability of the absolute error belonging to either the good or the bad distribution determines whether $\mathcal{H}_0$ or $\mathcal{H}_1$ is rejected. Once the cumulative sum of the logarithmic ratios passes an initially determined threshold $\Theta$ the model is communicated to the edge gateway.
 
+% \begin{algorithm}[!h]
+% \caption{\textit{CuSum} Policy}\label{polCusum}
+% \begin{algorithmic}
+% %%%Bad dist
+% \State $badDist \gets$ obtainBadDist() \Comment{Apendix \ref{baddist}}
+% %%Good dist
+% \State $goodDist \gets$ obtainGoodDist() \Comment{Apendix \ref{gooddist}}
+% \State $X_0, y_0 \gets$ fromDataStream
+% \State $X_1, y_1 \gets$ fromDataStream
+% \State $initModel \gets$ fit($X_0, y_0$)
+% \State $model \gets$ fit($X_1, y_1$)
+% \State $mse \gets$ calcError($model,X_1,y_1$)
+% \State $msePrime \gets$ calcError($initModel,X_1,y_1$)
+% \State $absError \gets \mid mse - msePrime \mid$
+% \State $goodProb \gets$ pdf($goodDist,absError$)
+% \State $badProb \gets$ pdf($badDist,absError$)
+% \State $logRatio \gets \log(badProb/goodProb)$
+% \State $logRatioSum \gets logRatio$
+% \State $logVector \gets [logRatioSum]$
+% \While{$True$}
+%     \State $X, y \gets$ fromDataStream
+%     \State $newModel \gets$ fit($X,y$)
+%     \State $mse \gets$ calcError($model,X,y$)
+%     \State $msePrime \gets$ calcError($newModel,X,y$)
+%     \State $absError \gets \mid mse - msePrime \mid$
+%     \State $goodProb \gets$ pdf($goodDist, absError$)
+%     \State $badProb \gets$ pdf($badDist, absError$)
+%     \State $logRatio \gets \log(badProb/goodProb)$
+%     \State $logRatioSum \gets logRatioSum + logRatio$
+%     \State $decisionValue \gets logRatioSum - $ min($logVector$)
+%     \State $logVector$.append($logRatioSum$)
+
+%     \If{$decisionValue > \Theta$}
+%         \State $model \gets newModel$ \Comment{communicate model}
+%         \State $logRatioSum \gets logRatio$
+%         \State $logVector \gets [logRatio]$
+%     \EndIf
+% \EndWhile
+% \end{algorithmic}
+% \end{algorithm}
+
 \begin{algorithm}[!h]
 \caption{\textit{CuSum} Policy}\label{polCusum}
 \begin{algorithmic}
-%%%Bad dist
-\State $badDist \gets$ obtainBadDist() \Comment{Apendix \ref{baddist}}
-%%Good dist
-\State $goodDist \gets$ obtainGoodDist() \Comment{Apendix \ref{gooddist}}
-\State $X_0, y_0 \gets$ fromDataStream
-\State $X_1, y_1 \gets$ fromDataStream
-\State $initModel \gets$ fit($X_0, y_0$)
-\State $model \gets$ fit($X_1, y_1$)
-\State $mse \gets$ calcError($model,X_1,y_1$)
-\State $msePrime \gets$ calcError($initModel,X_1,y_1$)
-\State $absError \gets \mid mse - msePrime \mid$
-\State $goodProb \gets$ pdf($goodDist,absError$)
-\State $badProb \gets$ pdf($badDist,absError$)
-\State $logRatio \gets \log(badProb/goodProb)$
-\State $logRatioSum \gets logRatio$
-\State $logVector \gets [logRatioSum]$
+\State $badDist \gets$ obtainBadDist() \Comment{Appendix \ref{baddist}}
+\State $goodDist \gets$ obtainGoodDist() \Comment{Appendix \ref{gooddist}}
+\State \textbf{receive}($X_0, y_0, X_1, y_1$)
+\State $initModel \gets$ \textbf{fit}($X_0, y_0$)
+\State $model \gets$ \textbf{fit}($X_1, y_1$)
+\State $e \gets$ \textbf{error}($model,X_1,y_1$)
+\State $e' \gets$ \textbf{error}($initModel,X_1,y_1$)
+\State $Z \gets \mid e - e' \mid$
+\State $P_0 \gets$ \textbf{pdf}($goodDist,Z$)
+\State $P_1 \gets$ \textbf{pdf}($badDist,Z$)
+\State $logRatio \gets \textbf{log}(P_1/P_0)$
+\State $S \gets logRatio$
+\State $logVector \gets \{S\}$
 \While{$True$}
-    \State $X, y \gets$ fromDataStream
+    \State \textbf{receive}($X, y$)
     \State $newModel \gets$ fit($X,y$)
-    \State $mse \gets$ calcError($model,X,y$)
-    \State $msePrime \gets$ calcError($newModel,X,y$)
-    \State $absError \gets \mid mse - msePrime \mid$
-    \State $goodProb \gets$ pdf($goodDist, absError$)
-    \State $badProb \gets$ pdf($badDist, absError$)
-    \State $logRatio \gets \log(badProb/goodProb)$
-    \State $logRatioSum \gets logRatioSum + logRatio$
-    \State $decisionValue \gets logRatioSum - $ min($logVector$)
-    \State $logVector$.append($logRatioSum$)
+    \State $e \gets$ \textbf{error}($model,X,y$)
+    \State $e' \gets$ \textbf{error}($newModel,X,y$)
+    \State $Z \gets \mid e - e' \mid$
+    \State $P_0 \gets$ \textbf{pdf}($goodDist, Z$)
+    \State $P_1 \gets$ \textbf{pdf}($badDist, Z$)
+    \State $logRatio \gets \textbf{log}(P_1/P_0)$
+    \State $S \gets S + logRatio$
+    \State $decisionValue \gets S - $ min($logVector$)
+    \State $logVector\gets logVector \cup \{S\}$
 
     \If{$decisionValue > \Theta$}
-        \State $model \gets newModel$ \Comment{communicate model}
-        \State $logRatioSum \gets logRatio$
-        \State $logVector \gets [logRatio]$
+        \State $model \gets newModel$ \Comment{update \& communicate model}
+        \State $S \gets logRatio$
+        \State $logVector \gets \{S\}$
     \EndIf
 \EndWhile
 \end{algorithmic}
 \end{algorithm}
-
+\newpage
 \section{Performance Evaluation}
 \subsection{Data sets}
 Two time-series datasets will be used in order to apply the proposed approach and perform the previously discussed experiments.
@@ -524,7 +648,7 @@ The ANOVA test produces p-values less than 5\% which show that there is a statis
 \end{figure}
 
 The plots show a significantly higher waiting time for the optimal policy but also a very high error rate compared to the base accuracy of policy E in Figure \ref{fig:svr_rbf_R5_error_plot_diff_means}. Analysing the results shows that the basic Median policy performs better than both the CuSum and the optimal policy with regards to communication and error rate.
-
+\newpage
 \subsection{Evaluation Summary}
 % place table with all policies and say when each is good for accurate models and when is good to wait and so on
 The results of this experiment can be concluded in a summarised table which shows the trade-offs for each policy and the situations in which each one is recommended. 
@@ -547,98 +671,175 @@ On the contrary, if the generated models are expected to produce low quality pre
 \section{Conclusions}
 This paper presented and evaluated a decision technique for optimal model update postponing at the edge. The results showed that the algorithm preserves the accuracy of the generated models and significantly reduces the communication overhead for linear regression models. However, when applying the technique with models of higher prediction quality, the quality of the models deteriorates due to the low communication rate. In this case, the technique should be used only in scenarios which do not require constant access to the most up-to-date contextual data. 
 
-% \subsection*{Future work}
 
-% {\bf Acknowledgments.}
-% This is optional; it is a location for you to thank people
+{\bf Acknowledgments.}
+I would like to thank my supervisor Dr Christos Anagnostopoulos for the guidance and support in the past two years. I would not have managed to achieve so much without the enthusiasm, motivation and endless opportunities he provided me with. I would also like to thank my parents who comforted me throughout all the hardship living far from home has brought me and my friends who helped me feel at home no matter where I was.
 
 \bibliographystyle{abbrv}
 \bibliography{example.bib}
 
 \begin{appendix}
-
+% \section{CUSUM policy}\label{baddist}
+% \begin{algorithm}[h]
+% \caption{Function to Obtain Bad Distribution}
+% \begin{algorithmic}
+% \Function{obtainBadDist}{}
+%     \State $X, y \gets$ fromDataStream
+%     \State $model \gets$ fit($X,y$)
+%     \For{$i = 0$ \textbf{to} $100$}
+%         \State $X, y \gets$ fromDataStream
+%         \State $newModel \gets$ fit($X,y$)
+%         \State $mse \gets$ calcError($model,X,y$)
+%         \State $msePrime \gets$ calcError($newModel,X,y$)
+%         \State $absMse \gets \mid error - msePrime \mid$
+%         \State $absoluteMseVector$.append($absMse$)
+%     \EndFor
+%     \State $mean \gets$ calcMean($absoluteMseVector$)
+%     \State $variance \gets$ calcVar($absoluteMseVector$)
+%     \State $shapeBad \gets mean^2/variance$
+%     \State $scaleBad \gets variance/mean$
+%     \State $badDist \gets$ Gamma($shapeBad, scaleBad$)\\
+%     \Return $badDist$
+% \EndFunction
+% \end{algorithmic}
+% \end{algorithm}
 \section{CUSUM policy}\label{baddist}
-\begin{algorithm}[h]
+\begin{algorithm}[H]
 \caption{Function to Obtain Bad Distribution}
 \begin{algorithmic}
 \Function{obtainBadDist}{}
-    \State $X, y \gets$ fromDataStream
-    \State $model \gets$ fit($X,y$)
-    \For{$i = 0$ \textbf{to} $100$}
-        \State $X, y \gets$ fromDataStream
-        \State $newModel \gets$ fit($X,y$)
-        \State $mse \gets$ calcError($model,X,y$)
-        \State $msePrime \gets$ calcError($newModel,X,y$)
-        \State $absMse \gets \mid error - msePrime \mid$
-        \State $absoluteMseVector$.append($absMse$)
+    \State \textbf{receive}($X, y$)
+    \State $model \gets$ \textbf{fit}($X,y$)
+    \State $\textbf{z} \gets \emptyset$
+    \For{$t \gets 1$ \textbf{to} $T$}
+        \State \textbf{receive}($X, y$)
+        \State $newModel \gets$ \textbf{fit}($X,y$)
+        \State $e \gets$ \textbf{error}($model,X,y$)
+        \State $e' \gets$ \textbf{error}($newModel,X,y$)
+        \State $Z \gets \mid e - e' \mid$
+        \State $\textbf{z} \gets \textbf{z} \cup \{Z\}$
     \EndFor
-    \State $mean \gets$ calcMean($absoluteMseVector$)
-    \State $variance \gets$ calcVar($absoluteMseVector$)
-    \State $shapeBad \gets mean^2/variance$
-    \State $scaleBad \gets variance/mean$
-    \State $badDist \gets$ Gamma($shapeBad, scaleBad$)\\
-    \Return $badDist$
+    \State $\mu \gets$ \textbf{mean}($\textbf{z}$)
+    \State $\sigma^2 \gets$ \textbf{var}($\textbf{z}$)
+    \State $shape \gets \mu^2/\sigma^2$
+    \State $scale \gets \sigma^2/\mu$\\
+    \Return Gamma($shape, scale$)
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
 
-\newpage
+% \section{CUSUM policy}\label{gooddist}
+% \begin{algorithm}[h]
+% \caption{Function to Obtain Good Distribution}
+% \begin{algorithmic}
+% \Function{obtainGoodDist}{}
+%     \State $X, y \gets$ fromDataStream
+%     \State $model \gets$ fit($X,y$)
+%     \For{$i = 0$ \textbf{to} $100$}
+%         \State $X, y \gets$ fromDataStream
+%         \State $newModel \gets$ fit($X,y$)
+%         \State $mse \gets$ calcError($model,X,y$)
+%         \State $msePrime \gets$ calcError($newModel,X,y$)
+%         \State $absMse \gets \mid error - msePrime \mid$
+%         \State $absoluteMseVector$.append($absMse$)
+%         \State $model \gets newModel$
+%     \EndFor
+%     \State $mean \gets$ calcMean($absoluteMseVector$)
+%     \State $variance \gets$ calcVar($absoluteMseVector$)
+%     \State $shapeGood \gets mean^2/variance$
+%     \State $scaleGood \gets variance/mean$
+%     \State $goodDist \gets$ Gamma($shapeGood, scaleGood$)\\
+%     \Return $goodDist$
+% \EndFunction
+% \end{algorithmic}
+% \end{algorithm}
 
 \section{CUSUM policy}\label{gooddist}
-\begin{algorithm}[h]
+\begin{algorithm}[H]
 \caption{Function to Obtain Good Distribution}
 \begin{algorithmic}
 \Function{obtainGoodDist}{}
-    \State $X, y \gets$ fromDataStream
-    \State $model \gets$ fit($X,y$)
-    \For{$i = 0$ \textbf{to} $100$}
-        \State $X, y \gets$ fromDataStream
-        \State $newModel \gets$ fit($X,y$)
-        \State $mse \gets$ calcError($model,X,y$)
-        \State $msePrime \gets$ calcError($newModel,X,y$)
-        \State $absMse \gets \mid error - msePrime \mid$
-        \State $absoluteMseVector$.append($absMse$)
+    \State \textbf{receive}($X, y$)
+    \State $model \gets$ \textbf{fit}($X,y$)
+    \State $\textbf{z} \gets \emptyset$
+    \For{$t \gets 1$ \textbf{to} $T$}
+        \State \textbf{receive}($X, y$)
+        \State $newModel \gets$ \textbf{fit}($X,y$)
+        \State $e \gets$ \textbf{error}($model,X,y$)
+        \State $e' \gets$ \textbf{error}($newModel,X,y$)
+        \State $Z \gets \mid e - e' \mid$
+        \State $\textbf{z} \gets \textbf{z} \cup \{Z\}$
         \State $model \gets newModel$
     \EndFor
-    \State $mean \gets$ calcMean($absoluteMseVector$)
-    \State $variance \gets$ calcVar($absoluteMseVector$)
-    \State $shapeGood \gets mean^2/variance$
-    \State $scaleGood \gets variance/mean$
-    \State $goodDist \gets$ Gamma($shapeGood, scaleGood$)\\
-    \Return $goodDist$
+    \State $\mu \gets$ \textbf{mean}($\textbf{z}$)
+    \State $\sigma^2 \gets$ \textbf{var}($\textbf{z}$)
+    \State $shape \gets \mu^2/\sigma^2$
+    \State $scale \gets \sigma^2/\mu$\\
+    \Return Gamma($shape, scale$)
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
 
-\section{Optimal Postponing Policy}\label{rewarddist}
-\begin{algorithm}[h]
+% \section{Time-optimised Policy}\label{rewarddist}
+% \begin{algorithm}[h]
+% \caption{Obtain Reward Distribution}
+% \begin{algorithmic}
+% \Function{obtainRewardDist}{}
+%     \State $X, y \gets$ fromDataStream
+%     \State $model \gets$ fit($X,y$)
+%     \State $absoluteSum \gets 0$
+%     \For{$i = 0$ \textbf{to} $100$}
+%         \State $X, y \gets$ fromDataStream
+%         \State $newModel \gets$ fit($X,y$)
+%         \State $mse \gets$ calcError($model,X,y$)
+%         \State $msePrime \gets$ calcError($newModel,X,y$)
+%         \State $absMse \gets \mid error - msePrime \mid$
+%         \State $absoluteSum \gets absoluteSum + absMse$
+%         \State $absoluteMseVector$.append($absMse$)
+        
+%         \If{$absoluteSum \leq \Theta$}
+%             \State $V_t \gets t$
+%         \Else
+%             \State $V_t \gets -B$
+%         \EndIf
+%     \EndFor
+%     \State $mean \gets$ calcMean($absoluteMseVector$)
+%     \State $variance \gets$ calcVar($absoluteMseVector$)
+    
+%     \State $shapeReward \gets mean^2/variance$
+%     \State $scaleReward \gets variance/mean$\\
+%     \Return Gamma($shapeReward, scaleReward$)
+    
+% \EndFunction
+% \end{algorithmic}
+% \end{algorithm}
+\newpage
+\section{Time-optimised Policy}\label{rewarddist}
+\begin{algorithm}[H]
 \caption{Obtain Reward Distribution}
 \begin{algorithmic}
 \Function{obtainRewardDist}{}
-    \State $X, y \gets$ fromDataStream
-    \State $model \gets$ fit($X,y$)
-    \State $absoluteSum \gets 0$
-    \For{$i = 0$ \textbf{to} $100$}
-        \State $X, y \gets$ fromDataStream
-        \State $newModel \gets$ fit($X,y$)
-        \State $mse \gets$ calcError($model,X,y$)
-        \State $msePrime \gets$ calcError($newModel,X,y$)
-        \State $absMse \gets \mid error - msePrime \mid$
-        \State $absoluteSum \gets absoluteSum + absMse$
-        \State $absoluteMseVector$.append($absMse$)
-        
-        \If{$absoluteSum \leq \Theta$}
-            \State $V_t \gets t$
-        \Else
-            \State $V_t \gets -B$
+    \State \textbf{receive}($X, y$)
+    \State $model \gets$ \textbf{fit}($X,y$)
+    \State $S \gets 0$
+    \State $\textbf{z} \gets \emptyset$
+    \For{$t \gets 1$ \textbf{to} $T$}
+        \State \textbf{receive}($X, y$)
+        \State $newModel \gets$ \textbf{fit}($X,y$)
+        \State $e \gets$ \textbf{error}($model,X,y$)
+        \State $e' \gets$ \textbf{error}($newModel,X,y$)
+        \State $Z \gets \mid e - e' \mid$
+        \State $S \gets S + Z$
+        \State $\textbf{z} \gets \textbf{z} \cup \{Z\}$
+        \If{$S > \Theta$}
+            \State $S \gets Z$
         \EndIf
     \EndFor
-    \State $mean \gets$ calcMean($absoluteMseVector$)
-    \State $variance \gets$ calcVar($absoluteMseVector$)
-    
-    \State $shapeReward \gets mean^2/variance$
-    \State $scaleReward \gets variance/mean$\\
-    \Return Gamma($shapeReward, scaleReward$)
+    \State $\mu \gets$ \textbf{mean}($\textbf{z}$)
+    \State $\sigma^2 \gets$ \textbf{var}($\textbf{z}$)
+    \State $shape \gets \mu^2/\sigma^2$
+    \State $scale \gets \sigma^2/\mu$\\
+    \Return Gamma($shape, scale$)
     
 \EndFunction
 \end{algorithmic}
