@@ -127,7 +127,7 @@ The optimal stopping time $t^{*}$ that maximizes the essential supremum $\mbox{e
 \[
 F_{Z}(\Theta - S_{t}) \leq \frac{t+B}{t+1+B},
 \]
-where $F_{Z}(z)$ is the cumulative density function (CDF) of the error differences $Z_{t}$ of the old and the updated ML models $e_{t}$ and $e_{t}'$, respectively.}  
+where $F_{Z}(z)$ is the cumulative distribution function (CDF) of the error differences $Z_{t}$ of the old and the updated ML models $e_{t}$ and $e_{t}'$, respectively.}  
 \\
 
 % Taking into consideration that the expected reward $E[V_t]$ must be a positive value, we can calculate the probability interval that the cumulative sum is less than or equal to the set threshold.
@@ -137,10 +137,10 @@ where $F_{Z}(z)$ is the cumulative density function (CDF) of the error differenc
 % \emph{\textbf{Proof:}} \\
 
 \textbf{Proof of Theorem 1}
-From the reward function in (\ref{reward}) we can derive the expected current reward $E[V_t]$. 
+From the reward function in (\ref{reward}) we can derive the expected current reward $\mathbb{E}[V_t]$. 
 \begin{equation}
 \begin{split}
-    E[V_t] & = t \cdot P(S_t \leq \Theta) + (-B \cdot P(S_t > \Theta))\\
+    \mathbb{E}[V_t] & = t \cdot P(S_t \leq \Theta) + (-B \cdot P(S_t > \Theta))\\
     & = t \cdot P(S_t \leq \Theta) - B \cdot (1 - P(S_t \leq \Theta))\\
     & = (t + B) \cdot P(S_t \leq \Theta) - B,
 \end{split}
@@ -543,11 +543,15 @@ The number of iterations between two model updates are referred to as waiting ti
 \hline
 \multicolumn{3}{|c|}{\cellcolor[HTML]{DAE8FC}\textbf{ANOVA test results}}       \\ \hline
 \multicolumn{3}{|l|}{\cellcolor[HTML]{FFFFFF}\textbf{p-value for waiting time}} \\ \hline
-pi3    & 1.2483606116074772e-30   & \textless{}= 0.05                           \\ \hline
-pi4    & 7.892553014202059e-14    & \textless{}= 0.05                           \\ \hline
+% pi3    & 1.2483606116074772e-30   & \textless{}= 0.05                           \\ \hline
+% pi4    & 7.892553014202059e-14    & \textless{}= 0.05                           \\ \hline
+pi3           & 1.248e-30         & \textless{}= 0.05                           \\ \hline
+pi4           & 7.893e-14         & \textless{}= 0.05                           \\ \hline
 \multicolumn{3}{|l|}{\cellcolor[HTML]{FFFFFF}\textbf{p-value for abs error}}    \\ \hline
-pi3    & 1.2436387993444255e-13   & \textless{}= 0.05                           \\ \hline
-pi4    & 2.7228117694830134e-17   & \cellcolor[HTML]{FFFFFF}\textless{}= 0.05   \\ \hline
+% pi3    & 1.2436387993444255e-13   & \textless{}= 0.05                           \\ \hline
+% pi4    & 2.7228117694830134e-17   & \cellcolor[HTML]{FFFFFF}\textless{}= 0.05   \\ \hline
+pi3           & 1.244e-13         & \textless{}= 0.05                           \\ \hline
+pi4           & 2.723e-17         & \cellcolor[HTML]{FFFFFF}\textless{}= 0.05   \\ \hline
 \end{tabular}
 \end{table}
 
@@ -576,9 +580,9 @@ The results in Figure \ref{fig:lin_reg_pi3_error_plot_diff_means} show that the 
 
 \subsection{Experimentation with Support Vector Regression models}
 
-After some analysis of the data it was found that the initial 100 datapoints of the HT sensor dataset contain a single drift in the observed pattern. However, the rest of the data used in the simulation of the online algorithm has no noticeable changes, which results in no communication between the edge node and the gateway. This called for placing an artificial change in the data. One gradual long term change and one abrupt short term change affecting only the MOX sensor data and preserving the genuine datastream for the humidity and temperature. This is aimed to simulate a new pattern in the data which will cause a change in the communicated models.
+After some analysis of the data it was found that the initial 100 datapoints of the HT sensor dataset contain a single drift in the observed pattern. However, the rest of the data used in the simulation of the online algorithm has no noticeable changes, which results in no communication between the edge node and the gateway. This called for placing an artificial change in the data. One incremental long term change and one abrupt short term change affecting only the MOX sensor data and preserving the genuine datastream for the humidity and temperature. This is aimed to simulate a new pattern in the data which will cause a change in the communicated models.
 
-The gradual long term change occurs from iteration 50 of the start of the simulation, where the MOX sensor values are increased with 10\% of the mean value in the next 12 iterations and after that the change is kept persistent throughout the rest of the simulation. This drift in the data is intended to serve as a critical change \cite{lautay2018} which should be detected by the algorithm and acted upon as soon as possible.
+The incremental long term change occurs from iteration 50 of the start of the simulation, where the MOX sensor values are increased with 10\% of the mean value in the next 12 iterations and after that the change is kept persistent throughout the rest of the simulation. This drift in the data is intended to serve as a critical change \cite{lautay2018} which should be detected by the algorithm and acted upon as soon as possible.
 
 The second abrupt short term change occurs in iteration 108. The change in the MOX sensor values is increased with 2.5\% of the mean value and then decreased to the genuine datastream in the next 4 iterations. This drift in the data is intended to serve as a nuisance change \cite{lautay2018} which should be of least importance to the algorithm.
 
@@ -622,11 +626,15 @@ The waiting times for each policy is investigated further again by performing an
 \hline
 \multicolumn{3}{|c|}{\cellcolor[HTML]{DAE8FC}\textbf{ANOVA test results}}       \\ \hline
 \multicolumn{3}{|l|}{\cellcolor[HTML]{FFFFFF}\textbf{p-value for waiting time}} \\ \hline
-R3    & 9.198283524237108e-18     & \textless{}= 0.05                           \\ \hline
-R5    & 1.4772473722529788e-32    & \textless{}= 0.05                           \\ \hline
+% R3    & 9.198283524237108e-18     & \textless{}= 0.05                           \\ \hline
+% R5    & 1.4772473722529788e-32    & \textless{}= 0.05                           \\ \hline
+R3                 & 9.198e-18     & \textless{}= 0.05                           \\ \hline
+R5                 & 1.477e-32    & \textless{}= 0.05                           \\ \hline
 \multicolumn{3}{|l|}{\cellcolor[HTML]{FFFFFF}\textbf{p-value for abs error}}    \\ \hline
-R3    & 6.003242592652264e-23     & \textless{}= 0.05                           \\ \hline
-R5    & 1.0617164482428442e-11    & \cellcolor[HTML]{FFFFFF}\textless{}= 0.05   \\ \hline
+% R3    & 6.003242592652264e-23     & \textless{}= 0.05                           \\ \hline
+% R5    & 1.0617164482428442e-11    & \cellcolor[HTML]{FFFFFF}\textless{}= 0.05   \\ \hline
+R3                 & 6.003e-23     & \textless{}= 0.05                           \\ \hline
+R5                 & 1.062e-11    & \cellcolor[HTML]{FFFFFF}\textless{}= 0.05   \\ \hline
 \end{tabular}
 \end{table}
 
@@ -660,7 +668,7 @@ On the contrary, if the generated models are expected to produce low quality pre
 \begin{tabular}{|l|l|l|}
 \hline
 \rowcolor[HTML]{c1fbc0} 
-\multicolumn{1}{|c|}{\cellcolor[HTML]{c1fbc0}Model type} & \multicolumn{1}{c|}{\cellcolor[HTML]{c1fbc0}\begin{tabular}[c]{@{}c@{}}High quality \\ predictions\end{tabular}} & \multicolumn{1}{c|}{\cellcolor[HTML]{c1fbc0}\begin{tabular}[c]{@{}c@{}}Low quality \\ predictions\end{tabular}} \\ \hline
+\multicolumn{1}{|c|}{\cellcolor[HTML]{c1fbc0}Policy} & \multicolumn{1}{c|}{\cellcolor[HTML]{c1fbc0}\begin{tabular}[c]{@{}c@{}}High quality \\ predictions\end{tabular}} & \multicolumn{1}{c|}{\cellcolor[HTML]{c1fbc0}\begin{tabular}[c]{@{}c@{}}Low quality \\ predictions\end{tabular}} \\ \hline
 \textbf{policy C}& \begin{tabular}[c]{@{}l@{}}high error and \\ high communication\end{tabular}& \checkmark\\ \hline
 \textbf{policy M}& \checkmark& \begin{tabular}[c]{@{}l@{}}high \\ communication\end{tabular}\\ \hline
 \textbf{policy OP}& high error& \checkmark\\ \hline
