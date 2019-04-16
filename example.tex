@@ -16,7 +16,7 @@
 \maketitle
 
 \begin{abstract}
-This paper explores a sequential decision making methodology of \textit{when to update} statistical learning models in Intelligent Edge Computing Devices given underlying changes in the contextual data distribution. The proposed model update scheduling takes into consideration the optimal decision time for minimizing the network overhead while preserving the prediction accuracy of the models. The paper reports on a comparison between the proposed approach with four other update delaying policies found in the literature, an evaluation of the performances using linear and support vector regression models over real contextual data streams and a discussion on the strengths and weaknesses of the proposed policy.
+This paper explores a sequential decision making methodology of \textit{when to update} statistical learning models in Intelligent Edge Computing Devices given underlying changes in the contextual data distribution. The proposed model update scheduling takes into consideration the optimal decision time for minimizing the network overhead while preserving the prediction accuracy of the models. The paper reports on a comparison between the proposed approach with four other update delaying policies found in the literature. In addition, an evaluation of the performances on linear and support vector regression models over real contextual data streams and a discussion on the strengths and weaknesses of the proposed policy.
 \end{abstract}
 
 \section{Introduction}
@@ -83,7 +83,7 @@ The contributions of this paper are as follows:
 
 \section{Methodology}
 The main focus of this work is to present and experiment with the
-proposed \textit{time-optimised model update postponing} policy/algorithm for reducing the communication rate but preserving the quality of the context. We assume that the distributed/EC environment contains at least sensor node and an edge gateway device. 
+proposed \textit{time-optimised model update postponing} policy/algorithm for reducing the communication rate but preserving the quality of the context. We assume that the distributed/EC environment contains at least one sensor node and one edge gateway device. 
 
 Initially, the sensing node is responsible for gathering environmental / multivariate contextual data and generating a statistical/Machine Learning (ML) model from the first \textbf{\emph{w}} contextual data observations. The ML model is then temporarily stored on the sensing device but also is communicated with the edge gateway. 
 On each next observation, the piece of data is received and appended to the currently stored sensor data set of size \textbf{\emph{w}}, while the datum with the oldest timestamp is discarded. 
@@ -112,7 +112,7 @@ edge node should proceed with a ML model update to the edge gateway or not. Unde
                   \end{tabular}
 \end{equation}
 
-The penalty factor $B> 0$ denotes that the current cumulative error exceed the error tolerance $\Theta$, thus, the edge node could have sent the updated ML model to the edge gateway. On the other hand, to be communication efficient, the edge node desires to postpone the ML model update, thus, increasing the value of $V_{t}$. However, as long as the edge node delays the model update, then the cumulative error $S_{t}$ approaches $\Theta$. The problem is for the cumulative error $S_{t}$ to reach as close to the tolerance $\Theta$ as possible, but without exceeding this. Hence, we then formalise the OST problem:
+The penalty factor $B> 0$ denotes that the current cumulative error exceeds the error tolerance $\Theta$, thus, the edge node could have sent the updated ML model to the edge gateway. On the other hand, to be communication efficient, the edge node desires to postpone the ML model update, thus, increasing the value of $V_{t}$. However, as long as the edge node delays the model update, then the cumulative error $S_{t}$ approaches $\Theta$. The problem is for the cumulative error $S_{t}$ to reach as close to the tolerance $\Theta$ as possible, but without exceeding this. Hence, we then formalise the OST problem:
 
 \textbf{Problem 1} The edge node should find the best time instance $t^{*}$ such that the expected reward for delaying a ML model update is maximized, i.e., the optimal stopping time $t^{*}$ obtains the following essential supremum
 \[
@@ -166,7 +166,7 @@ Hence, we obtain that:
 \begin{align*}
     \mathbb{E}[V_{t+1}|\mathbb{F}_{t}] &= (t + 1 + B) \cdot P(S_{t+1} \leq \Theta | \mathbb{F}_t) - B\\
     &=(t + 1 + B) \cdot P(S_{t}+Z_{t+1} \leq \Theta | \mathbb{F}_{t}) - B\\
-    &=(t + 1 + B) \cdot P(Z_{t+1} \leq \Theta-S_{t+1} | \mathbb{F}_{t}) - B\\
+    &=(t + 1 + B) \cdot P(Z_{t+1} \leq \Theta-S_{t} | \mathbb{F}_{t}) - B\\
     &=(t + 1 + B) \cdot F_{Z}(\Theta-S_{t}) - B\\
 \end{align*}
 
@@ -240,7 +240,7 @@ Algorithm \ref{polOP} illustrates the local process in the edge node.
 \end{algorithm}
 \newpage
 \subsection{Policies under Comparison}
-In order to evaluate the performance of the presented algorithm 4 other policies are implemented, which rely either on certain statistics of the data or on pure randomness: the Median-based Policy, the Random Policy, the Accuracy Policy, and the optimal CuSum Policy \cite{cusum_pierre}.
+In order to evaluate the performance of the presented algorithm, four other policies are implemented, which rely either on certain statistics of the data or on pure randomness: the Median-based Policy, the Random-based Policy, the Accuracy-based Policy, and the optimal CuSum Policy \cite{cusum_pierre}.
 
 \subsubsection{Median-based Policy}
 The Median Policy has an initially learned median from the previously seen data. It is calculated from the absolute error difference values given that the initial model is never updated. 
@@ -300,6 +300,7 @@ This policy is expected to reduce communication by being more tolerant towards i
 \EndProcedure
 \State \textbf{receive}($X, y$)
 \State $model \gets$ \textbf{fit}($X,y$)
+\State $t \gets 1$
 \While{$true$}
     \State \textbf{receive}($X, y$)
     \State $newModel \gets$ \textbf{fit}($X,y$)
@@ -311,6 +312,7 @@ This policy is expected to reduce communication by being more tolerant towards i
     \If{$t \mod T = 0$}
         \State \textbf{updateMedian}()
     \EndIf
+    \State $t \gets t + 1$
 \EndWhile
 \end{algorithmic}
 \end{algorithm}
@@ -399,7 +401,7 @@ The algorithm implemented here relies on the direct form of the CuSum algorithm 
 For the execution of the algorithm, two assumptions of the distributions are made representing the two hypothesis, where the algorithm aims to decide which hypothesis represents the current sample of data. 
 Firstly, the $\mathcal{H}_0$ no change hypothesis refers to the "good distribution" which is assumed to be the distribution of the absolute error difference when the edge gateway model is communicated on every iteration. On the contrary, the "bad distribution" represented by the changed distribution hypothesis $\mathcal{H}_1$ is assumed to be the distribution of the absolute error difference when the model is communicated only on the first iteration and then never again.
 
-The assumption is made that the absolute error differences $Z_0, Z_1, \dotsc , Z_n $ are continuous independent random variables. In this case a gamma distribution is a good choice to represent the data  [Fig.\ref{fig:goodvsbad}], relying on the two flexible parameters for scale and shape of the probability density function of the distribution.
+The assumption is made that the absolute error differences $Z_0, Z_1, \dotsc , Z_n $ are continuous independent random variables. In this case a gamma distribution is a good choice to represent the data, Figure \ref{fig:goodvsbad}, relying on the two flexible parameters for scale and shape of the probability density function of the distribution.
 
 \begin{figure}[h]
     \centering
@@ -408,7 +410,7 @@ The assumption is made that the absolute error differences $Z_0, Z_1, \dotsc , Z
     \label{fig:goodvsbad}
 \end{figure}
 
-When a new absolute error difference is calculated it is then fitted in the probability density function for each of the two distributions. The logarithmic ratio of the probability of the absolute error belonging to either the good or the bad distribution determines whether $\mathcal{H}_0$ or $\mathcal{H}_1$ is rejected. Once the cumulative sum of the logarithmic ratios passes an initially determined threshold $\Theta$ the model is communicated to the edge gateway.
+When a new absolute error difference is calculated it is then fitted in the probability density function for each of the two distributions. The logarithmic ratio of the probability of the absolute error belonging to either the good or the bad distribution determines whether $\mathcal{H}_0$ or $\mathcal{H}_1$ is rejected. Once the cumulative sum of the logarithmic ratios passes an initially determined threshold $\Phi$ the model is communicated to the edge gateway.
 
 % \begin{algorithm}[!h]
 % \caption{\textit{CuSum} Policy}\label{polCusum}
@@ -464,7 +466,7 @@ When a new absolute error difference is calculated it is then fitted in the prob
 \State $Z \gets \mid e - e' \mid$
 \State $P_0 \gets$ \textbf{pdf}($goodDist,Z$)
 \State $P_1 \gets$ \textbf{pdf}($badDist,Z$)
-\State $logRatio \gets \textbf{log}(P_1/P_0)$
+\State $logRatio \gets \textbf{log}(\frac{P_1}{P_0})$
 \State $S \gets logRatio$
 \State $logVector \gets \{S\}$
 \While{$True$}
@@ -475,12 +477,12 @@ When a new absolute error difference is calculated it is then fitted in the prob
     \State $Z \gets \mid e - e' \mid$
     \State $P_0 \gets$ \textbf{pdf}($goodDist, Z$)
     \State $P_1 \gets$ \textbf{pdf}($badDist, Z$)
-    \State $logRatio \gets \textbf{log}(P_1/P_0)$
+    \State $logRatio \gets \textbf{log}(\frac{P_1}{P_0})$
     \State $S \gets S + logRatio$
     \State $decisionValue \gets S - $ min($logVector$)
     \State $logVector\gets logVector \cup \{S\}$
 
-    \If{$decisionValue > \Theta$}
+    \If{$decisionValue > \Phi$}
         \State $model \gets newModel$ \Comment{update \& communicate model}
         \State $S \gets logRatio$
         \State $logVector \gets \{S\}$
@@ -504,7 +506,7 @@ Three of the policies require parameterisation which needs to be mentioned in ad
 
 The Median policy was performed using an $\alpha$ fraction of the median of the first 100 datapoints, in this case $\alpha$ was set to 0.5.
 
-The CuSum policy relies on a threshold parameter $\Theta = 2$, up to which the cumulative sum of the logarithmic ratio is allowed to increase.
+The CuSum policy relies on a threshold parameter $\Phi = 2$, up to which the cumulative sum of the logarithmic ratio is allowed to increase.
 
 \begin{figure}[h]
     \centering
@@ -535,7 +537,7 @@ These values are then used in the complete simulation of the policy comparison. 
 
 As can be seen from Figure \ref{fig:err_lin_reg_pi3}, the plot is very inconsistent due to the low accuracy of the linear regression models. The absolute error difference for the optimal policy preserves a similar rate to policy A for 6 iterations which is aimed at keeping the most accurate model. However, as seen in Figure \ref{fig:comm_lin_reg_pi3}, the optimal policy waits 6 iterations more compared to policy A before sending an update.  
 
-The number of iterations between two model updates are referred to as waiting times and they are further investigated by performing an ANOVA test and a Tukey's HSD test for multiple mean differences. 
+The number of iterations between two model updates are referred to as waiting times and they are further investigated by performing an ANOVA test and a Tukey's Honest Significant Difference (HSD) test for multiple mean differences. 
 
 \begin{table}[h]
 \centering
@@ -559,9 +561,10 @@ The results show p-values less than 5\% which point to a statistically significa
 
 The plot in Figure \ref{fig:lin_reg_pi3_waiting_plot_diff_means} shows that optimal policy has a statistically significant higher waiting time compared to policy M, policy C and policy A and the same mean with the Random policy as intended.
 This shows the advantage in communication reduction introduced by the optimal policy.
-Moreover, we perform the Tukey's HSD test on the absolute error difference of each policy obtained during the simulation along with policy E. Policy E communicates the up-to-date models on each iteration and is intended as a lower bound which show the absolute error rate of the models at its lowest. 
+Moreover, we perform the Tukey's HSD test on the absolute error difference of each policy obtained during the simulation along with policy E. Policy E communicates the up-to-date models on each iteration and is intended as a lower bound which shows the absolute error rate of the models at its lowest. 
 
-The results in Figure \ref{fig:lin_reg_pi3_error_plot_diff_means} show that the accuracy of the models does not suffer a significant deterioration compared to policy E and the other communication reduction policies but preserves the highest postponing time. Moreover, the plot shows that randomly updating the models leads to a significant increase in the absolute error, therefore, the optimal policy does not just correctly guess the optimal number of updates but also the optimal time between the updates. 
+The results in Figure \ref{fig:lin_reg_pi3_error_plot_diff_means} show that the accuracy of the models does not suffer a significant deterioration compared to policy E and the other communication reduction policies but preserves the highest postponing time. Moreover, the plot shows that randomly updating the models leads to a significant increase in the absolute error, therefore, the optimal policy does not just correctly guess the optimal number of updates but also the optimal 
+intervals between the updates. 
 % talk about one-way anova results and tukey ttest on waiting time
 % place plot
 \begin{figure}[h]
@@ -587,7 +590,7 @@ The incremental long term change occurs from iteration 50 of the start of the si
 The second abrupt short term change occurs in iteration 108. The change in the MOX sensor values is increased with 2.5\% of the mean value and then decreased to the genuine datastream in the next 4 iterations. This drift in the data is intended to serve as a nuisance change \cite{lautay2018} which should be of least importance to the algorithm.
 
 The global parameters for this experiment are set the same way as in the experimentation using the linear regression models: window size 25 and initial preprocessing data containing 100 datapoints. 
-The Median policy uses the $\alpha$ with a set value of 0.5 and the cumulative sum threshold for the CuSum policy is set to $\Theta=0.5$.
+The Median policy uses the $\alpha$ with a set value of 0.5 and the cumulative sum threshold for the CuSum policy is set to $\Phi=0.5$.
 
 \begin{figure}[h]
     \centering
@@ -603,7 +606,7 @@ For the optimal policy, the cumulative sum threshold was set to $\Theta=1$ as it
     \includegraphics[scale=0.33]{imgs/svr_rbf_R5_w25.png}
     \caption{Absolute error difference for HT sensor system, s=R5, w=25,
     using Support Vector Regression with RBF Kernel 
-    given an artificial change at 40th window iteration}
+    given an artificial change at 50th window iteration}
     \label{fig:err_rbf_svr_R5}
 \end{figure}
 
@@ -681,7 +684,7 @@ This paper presented and evaluated a decision technique for optimal model update
 
 
 {\bf Acknowledgments.}
-I would like to thank my supervisor Dr Christos Anagnostopoulos for the guidance and support in the past two years. I would not have managed to achieve so much without the enthusiasm, motivation and endless opportunities he provided me with. I would also like to thank my parents who comforted me throughout all the hardship living far from home has brought me and my friends who helped me feel at home no matter where I was.
+I would like to thank my supervisor Dr Christos Anagnostopoulos for the guidance and support in the past two years. I would not have managed to achieve so much without the enthusiasm, motivation and endless opportunities he provided me with. I would also like to thank my parents and my sister who comforted me throughout all the hardships living far from home has brought me and my friends who helped me feel at home no matter where I was.
 
 \bibliographystyle{abbrv}
 \bibliography{example.bib}
